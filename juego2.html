@@ -1,0 +1,2940 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>La Sombra de Jalejos - Juego de Detective</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .game-container {
+            max-width: 900px;
+            width: 100%;
+            background: #f5f1e8;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: #ecf0f1;
+            padding: 25px;
+            text-align: center;
+            border-bottom: 4px solid #e67e22;
+        }
+
+        .header h1 {
+            font-size: 2.2em;
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1em;
+            opacity: 0.9;
+        }
+
+        .stats-bar {
+            display: flex;
+            justify-content: space-around;
+            padding: 15px;
+            background: #ecf0f1;
+            border-bottom: 2px solid #bdc3c7;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.85em;
+            color: #7f8c8d;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .game-screen {
+            padding: 30px;
+            min-height: 400px;
+        }
+
+        .intro-screen, .location-screen, .interrogation-screen, .end-screen {
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .story-text {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            line-height: 1.8;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .button {
+            background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1em;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(230, 126, 34, 0.3);
+            font-family: 'Georgia', serif;
+            margin: 5px;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(230, 126, 34, 0.5);
+        }
+
+        .button:active {
+            transform: translateY(0);
+        }
+
+        .button-secondary {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .location-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .location-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            border: 2px solid transparent;
+        }
+
+        .location-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            border-color: #e67e22;
+        }
+
+        .location-card.visited {
+            opacity: 0.7;
+            background: #ecf0f1;
+        }
+
+        .location-icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .location-name {
+            font-weight: bold;
+            font-size: 1.2em;
+            color: #2c3e50;
+        }
+
+        .clue-search {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .clue-item {
+            background: #fff9e6;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #f39c12;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .clue-item:hover {
+            background: #fff4d6;
+            transform: translateX(5px);
+        }
+
+        .clue-found {
+            background: #d4edda;
+            border-left-color: #28a745;
+        }
+
+        .suspect-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .suspect-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .suspect-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+
+        .suspect-card.questioned {
+            border: 2px solid #3498db;
+        }
+
+        .suspect-avatar {
+            font-size: 4em;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .suspect-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .suspect-role {
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+
+        .question-box {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .question-options {
+            margin-top: 15px;
+        }
+
+        .question-btn {
+            display: block;
+            width: 100%;
+            text-align: left;
+            background: #ecf0f1;
+            padding: 15px;
+            margin: 10px 0;
+            border: 2px solid #bdc3c7;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1em;
+        }
+
+        .question-btn:hover {
+            background: #d5dbdb;
+            border-color: #e67e22;
+        }
+
+        .answer-box {
+            background: #e8f5e9;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #4caf50;
+        }
+
+        .notebook {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 2px dashed #bdc3c7;
+        }
+
+        .notebook h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .notebook-item {
+            padding: 10px;
+            margin: 8px 0;
+            background: #f8f9fa;
+            border-radius: 5px;
+            font-size: 0.95em;
+        }
+
+        .accusation-panel {
+            background: #fff3cd;
+            padding: 25px;
+            border-radius: 10px;
+            border: 2px solid #ffc107;
+            margin: 20px 0;
+        }
+
+        .end-screen {
+            text-align: center;
+        }
+
+        .result-box {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+
+        .result-success {
+            border: 4px solid #28a745;
+        }
+
+        .result-failure {
+            border: 4px solid #dc3545;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 12px;
+            background: #e67e22;
+            color: white;
+            border-radius: 20px;
+            font-size: 0.85em;
+            margin-left: 10px;
+        }
+
+        .progress-bar {
+            background: #ecf0f1;
+            height: 10px;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #e67e22 0%, #f39c12 100%);
+            height: 100%;
+            transition: width 0.5s;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <h1>🕵️ La Sombra de Jalejos</h1>
+            <p>Detective Hugo L. - División de Homicidios</p>
+        </div>
+
+        <div class="stats-bar">
+            <div class="stat">
+                <div class="stat-label">Pistas Encontradas</div>
+                <div class="stat-value" id="clues-count">0/9</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Sospechosos Interrogados</div>
+                <div class="stat-value" id="suspects-count">0/4</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Tiempo Restante</div>
+                <div class="stat-value" id="time-remaining">25:00</div>
+            </div>
+        </div>
+
+        <div class="game-screen" id="game-screen">
+            <!-- Las pantallas del juego se cargarán aquí -->
+        </div>
+    </div>
+
+    <script>
+        // Estado del juego
+        const gameState = {
+            currentScreen: 'menu',
+            currentMission: null,
+            cluesFound: [],
+            suspectsQuestioned: [],
+            timeRemaining: 1500, // 25 minutos en segundos
+            timerInterval: null,
+            currentLocation: null,
+            currentSuspect: null,
+            mission1Completed: false,
+            mission2Completed: false,
+            mission3Completed: false,
+            mission4Completed: false,
+            // Mission 4 specific
+            filesReviewed: [],
+            guardsAvoided: 0,
+            suspicionLevel: 0
+        };
+
+        // Sistema de guardado
+        function saveProgress() {
+            const saveData = {
+                mission1Completed: gameState.mission1Completed,
+                mission2Completed: gameState.mission2Completed,
+                mission3Completed: gameState.mission3Completed,
+                mission4Completed: gameState.mission4Completed
+            };
+            localStorage.setItem('laSombraDeJalejosProgress', JSON.stringify(saveData));
+        }
+
+        function loadProgress() {
+            const savedData = localStorage.getItem('laSombraDeJalejosProgress');
+            if (savedData) {
+                const progress = JSON.parse(savedData);
+                gameState.mission1Completed = progress.mission1Completed || false;
+                gameState.mission2Completed = progress.mission2Completed || false;
+                gameState.mission3Completed = progress.mission3Completed || false;
+                gameState.mission4Completed = progress.mission4Completed || false;
+            }
+        }
+
+        function resetProgress() {
+            if (confirm('¿Estás seguro de que quieres reiniciar todo el progreso? Esta acción no se puede deshacer.')) {
+                localStorage.removeItem('laSombraDeJalejosProgress');
+                location.reload();
+            }
+        }
+
+        // Backstory del detective
+        const hugoBackstory = {
+            sonName: "Miguel L.",
+            sonAge: 12,
+            cause: "Bala perdida en un tiroteo de pandillas hace 3 años",
+            reason: "Desde entonces, Hugo dedicó su vida a limpiar las calles y hacer justicia"
+        };
+
+        // Datos del juego
+        const gameData = {
+            mission1: {
+                locations: [
+                    {
+                        id: 'alley',
+                        name: 'Callejón del Crimen',
+                        icon: '🏚️',
+                        clues: ['blood_trail', 'green_symbol', 'torn_clothing']
+                    },
+                    {
+                        id: 'victim_belongings',
+                        name: 'Pertenencias de la Víctima',
+                        icon: '🎒',
+                        clues: ['empty_wallet', 'old_photo']
+                    },
+                    {
+                        id: 'nearby_bar',
+                        name: 'Bar Cercano',
+                        icon: '🍺',
+                        clues: ['witness_statement', 'security_footage']
+                    },
+                    {
+                        id: 'abandoned_warehouse',
+                        name: 'Almacén Abandonado',
+                        icon: '🏭',
+                        clues: ['green_graffiti', 'weapon']
+                    }
+                ],
+                clues: {
+                    'blood_trail': { name: 'Rastro de Sangre', description: 'Un rastro de sangre que va desde el cuerpo hasta la calle principal. La víctima intentó escapar.' },
+                    'green_symbol': { name: 'Símbolo Verde', description: '⚠️ Un extraño símbolo pintado en verde en la pared: tres líneas verticales con un círculo. Marca del clan "Los Verdes".' },
+                    'torn_clothing': { name: 'Ropa Desgarrada', description: 'La ropa de la víctima está desgarrada, señales de forcejeo. No parece un simple robo.' },
+                    'empty_wallet': { name: 'Cartera Vacía', description: 'La cartera está vacía, sin dinero ni documentos. ¿Robo o fue algo más?' },
+                    'old_photo': { name: 'Fotografía Antigua', description: 'Una foto vieja del vagabundo con un hombre en traje. Al reverso dice: "Hermanos para siempre".' },
+                    'witness_statement': { name: 'Testimonio de Testigo', description: 'Un cliente del bar vio a alguien con sudadera verde salir corriendo del callejón cerca de las 11 PM.' },
+                    'security_footage': { name: 'Grabación de Seguridad', description: 'La cámara del bar muestra a una figura encapuchada merodeando el callejón minutos antes.' },
+                    'green_graffiti': { name: 'Grafiti Verde', description: '⚠️ Múltiples grafitis con el símbolo de "Los Verdes" en las paredes. Este es su territorio.' },
+                    'weapon': { name: 'Arma Homicida', description: 'Un tubo de metal manchado con sangre escondido detrás de unos barriles. Tiene huellas dactilares.' }
+                },
+                suspects: [
+                    {
+                        id: 'dealer',
+                        name: 'Marco "El Flaco" Silva',
+                        role: 'Traficante de Poca Monta',
+                        avatar: '🧢',
+                        guilty: true,
+                        questions: {
+                            whereabouts: 'Estaba en mi casa viendo tele. No salí en toda la noche.',
+                            motive: 'No conocía al tipo. ¿Por qué mataría a un vagabundo sin nada?',
+                            access: 'Paso por ese callejón a veces, como todo el mundo. No significa nada.'
+                        },
+                        clueReveals: {
+                            weapon: 'Está bien... estuve ahí. Pero no fue idea mía. ¡Me obligaron!',
+                            green_symbol: 'Los Verdes... ellos me dieron la orden. Si no obedecía, me matarían a mí. ¡Tenían que silenciarlo!'
+                        }
+                    },
+                    {
+                        id: 'bartender',
+                        name: 'Rosa Martínez',
+                        role: 'Dueña del Bar',
+                        avatar: '👩‍🍳',
+                        guilty: false,
+                        questions: {
+                            whereabouts: 'Estaba trabajando en el bar hasta las 2 AM. Muchos clientes me vieron.',
+                            motive: 'El pobre hombre venía a veces a buscar comida. Le daba lo que sobraba. No le haría daño.',
+                            access: 'Mi bar está justo al lado del callejón. Ojalá hubiera visto algo útil.'
+                        }
+                    },
+                    {
+                        id: 'businessman',
+                        name: 'Ricardo Mendoza',
+                        role: 'Empresario Local',
+                        avatar: '👔',
+                        guilty: false,
+                        questions: {
+                            whereabouts: 'Estaba en una cena de negocios en el centro. Tengo recibos y testigos.',
+                            motive: 'No tengo ninguna relación con gente de la calle. Mi mundo es muy diferente.',
+                            access: 'Jamás paso por esa zona. Es peligrosa.'
+                        },
+                        clueReveals: {
+                            old_photo: '¿Qué? Ese... ese era mi hermano menor. Hace años que no lo veía... cayó en las drogas y desapareció. ¿Está muerto?'
+                        }
+                    },
+                    {
+                        id: 'officer',
+                        name: 'Agente Patricia Torres',
+                        role: 'Policía de Patrulla',
+                        avatar: '👮‍♀️',
+                        guilty: false,
+                        questions: {
+                            whereabouts: 'Estaba de patrulla en otra zona de la ciudad. Hay registros de mi ronda.',
+                            motive: 'Soy policía. Mi trabajo es proteger, no matar.',
+                            access: 'Conozco la zona. Los Verdes operan ahí. Son peligrosos.'
+                        },
+                        clueReveals: {
+                            green_symbol: 'Ese símbolo... Los Verdes. Es una banda criminal organizada. Su líder es desconocido, pero son despiadados.',
+                            green_graffiti: 'Los Verdes controlan ese territorio. Si alguien los traiciona o amenaza sus operaciones, lo eliminan.'
+                        }
+                    }
+                ]
+            },
+            mission2: {
+                locations: [
+                    {
+                        id: 'living_room',
+                        name: 'Sala de Estar',
+                        icon: '🛋️',
+                        clues: ['family_photo', 'untouched_dinner', 'tv_on']
+                    },
+                    {
+                        id: 'bedroom',
+                        name: 'Dormitorio Principal',
+                        icon: '🛏️',
+                        clues: ['clothes_missing', 'jewelry_intact', 'passports_gone']
+                    },
+                    {
+                        id: 'kitchen',
+                        name: 'Cocina',
+                        icon: '🍳',
+                        clues: ['food_fresh', 'calendar_marked', 'phone_message']
+                    },
+                    {
+                        id: 'garage',
+                        name: 'Garaje',
+                        icon: '🚗',
+                        clues: ['car_missing', 'suitcases_gone', 'green_note']
+                    }
+                ],
+                clues: {
+                    'family_photo': { name: 'Foto Familiar', description: 'Una foto reciente de la familia Ramírez: padre, madre y dos niños pequeños. Se ven felices.' },
+                    'untouched_dinner': { name: 'Cena Intacta', description: 'La mesa está puesta para cenar, con comida que apenas se enfrió. Se fueron de prisa.' },
+                    'tv_on': { name: 'Televisor Encendido', description: 'El televisor sigue encendido, mostrando un programa infantil. Nadie lo apagó.' },
+                    'clothes_missing': { name: 'Ropa Faltante', description: 'El armario tiene espacios vacíos. Se llevaron ropa de urgencia, no todo ordenadamente.' },
+                    'jewelry_intact': { name: 'Joyas Intactas', description: 'Las joyas y objetos de valor siguen en su lugar. No fue un robo.' },
+                    'passports_gone': { name: 'Pasaportes Desaparecidos', description: '⚠️ CRUCIAL: Los pasaportes de toda la familia han desaparecido. Planeaban huir lejos.' },
+                    'food_fresh': { name: 'Comida Fresca', description: 'La leche en el refrigerador todavía está fresca. Se fueron hace menos de 24 horas.' },
+                    'calendar_marked': { name: 'Calendario Marcado', description: 'El calendario tiene una fecha marcada en rojo hace 3 días: "Reunión importante".' },
+                    'phone_message': { name: 'Mensaje en el Contestador', description: '⚠️ CRUCIAL: "Señor Ramírez, sabemos lo que vio. Mantenga la boca cerrada o su familia pagará las consecuencias." Voz distorsionada.' },
+                    'car_missing': { name: 'Auto Desaparecido', description: 'El auto familiar no está en el garaje. Lo usaron para escapar.' },
+                    'suitcases_gone': { name: 'Maletas Ausentes', description: 'Las maletas que normalmente están aquí han desaparecido. Empacaron lo esencial.' },
+                    'green_note': { name: 'Nota Verde', description: '⚠️ CRUCIAL: Una nota amenazante con el símbolo de Los Verdes: "Aléjate de nuestros asuntos o desaparece".' }
+                },
+                conclusions: [
+                    {
+                        id: 'kidnapped',
+                        text: 'Fueron secuestrados por una banda criminal',
+                        correct: false,
+                        explanation: 'No hay signos de violencia ni forcejeo. Las joyas están intactas y se llevaron los pasaportes voluntariamente.'
+                    },
+                    {
+                        id: 'witness_protection',
+                        text: 'Entraron en un programa de protección de testigos',
+                        correct: false,
+                        explanation: 'Si fuera protección oficial, no habrían dejado la casa así. Los pasaportes estarían confiscados y tendrían ayuda policial.'
+                    },
+                    {
+                        id: 'threatened_fled',
+                        text: 'Huyeron por su cuenta tras recibir amenazas de Los Verdes',
+                        correct: true,
+                        explanation: '¡Correcto! El señor Ramírez presenció algo relacionado con Los Verdes. Las amenazas los obligaron a huir rápidamente por su cuenta, llevando pasaportes y lo esencial. No confiaron en la policía por miedo.'
+                    },
+                    {
+                        id: 'planned_vacation',
+                        text: 'Se fueron de vacaciones planeadas de último momento',
+                        correct: false,
+                        explanation: 'La cena intacta, el televisor encendido y la nota amenazante demuestran que fue una huida urgente, no vacaciones.'
+                    }
+                ]
+            },
+            mission3: {
+                locations: [
+                    {
+                        id: 'safehouse',
+                        name: 'Casa de Seguridad',
+                        icon: '🏠',
+                        clues: ['broken_window', 'no_struggle', 'informant_file']
+                    },
+                    {
+                        id: 'street',
+                        name: 'Calle Exterior',
+                        icon: '🚶',
+                        clues: ['no_witnesses', 'surveillance_gap', 'professional_hit']
+                    },
+                    {
+                        id: 'police_station',
+                        name: 'Estación de Policía',
+                        icon: '🏛️',
+                        clues: ['database_access', 'limited_knowledge', 'recent_query']
+                    }
+                ],
+                clues: {
+                    'broken_window': { name: 'Ventana Rota', description: 'La ventana fue rota desde afuera, pero el cristal está disperso de forma extraña. Punto de entrada.' },
+                    'no_struggle': { name: 'Sin Signos de Lucha', description: '⚠️ CRUCIAL: El informante fue asesinado con un solo disparo. Sin forcejeo, sin defensa. Lo tomaron por sorpresa.' },
+                    'informant_file': { name: 'Expediente del Informante', description: 'El expediente estaba sobre la mesa. Información sensible sobre Los Verdes. Iba a testificar mañana.' },
+                    'no_witnesses': { name: 'Sin Testigos', description: 'Nadie vio nada. En una calle normalmente transitada. Demasiado conveniente.' },
+                    'surveillance_gap': { name: 'Fallo en Vigilancia', description: 'Las cámaras de seguridad del área "fallaron" exactamente durante 15 minutos. Justo cuando ocurrió el asesinato.' },
+                    'professional_hit': { name: 'Ejecución Profesional', description: '⚠️ CRUCIAL: Un disparo, calibre profesional, silenciador. Esto fue obra de un sicario experimentado, no un pandillero común.' },
+                    'database_access': { name: 'Registro de Acceso a Base de Datos', description: '⚠️ CRUCIAL: Alguien accedió a la ubicación de la casa de seguridad desde una terminal policial 2 horas antes del asesinato.' },
+                    'limited_knowledge': { name: 'Conocimiento Limitado', description: 'Solo 5 personas sabían la ubicación exacta: el Capitán, dos detectives de confianza, el fiscal y el propio informante.' },
+                    'recent_query': { name: 'Consulta Reciente', description: '⚠️ CRUCIAL: El acceso a la base de datos fue desde una terminal de alto rango. Requiere credenciales de oficial superior o fiscal.' }
+                },
+                suspects: [
+                    {
+                        id: 'street_cop',
+                        name: 'Oficial Javier Mendoza',
+                        role: 'Policía de Patrulla - Zona del Crimen',
+                        avatar: '👮',
+                        guilty: false,
+                        questions: {
+                            whereabouts: 'Estaba en mi patrulla, a 3 cuadras. No vi ni oí nada. Cuando llegué, ya había pasado todo.',
+                            knowledge: 'No sabía nada del informante. Eso está por encima de mi nivel. Solo patrullaba la zona.',
+                            suspicion: '¿Por qué me interrogan a mí? Soy un simple policía de calle. Pregunten a los de arriba.'
+                        },
+                        clueReveals: {
+                            database_access: 'Yo no tengo acceso a esas bases de datos. Solo los de alto rango pueden entrar ahí.',
+                            recent_query: 'Mire mi registro. Yo estaba en la calle, no en ninguna computadora.'
+                        }
+                    },
+                    {
+                        id: 'detective_torres',
+                        name: 'Detective Ana Torres',
+                        role: 'Detective de Narcóticos',
+                        avatar: '👩‍💼',
+                        guilty: false,
+                        questions: {
+                            whereabouts: 'Estaba interrogando a otro sospechoso en la estación. Hay cámaras y testigos.',
+                            knowledge: 'Sabía del informante, pero no la ubicación exacta. El Capitán mantiene eso reservado.',
+                            suspicion: 'Llevo 15 años en el cuerpo. Mi récord es impecable. Esto me ofende, Hugo.'
+                        },
+                        clueReveals: {
+                            database_access: 'Tengo acceso a la base de datos, sí. Pero no consulté nada esa noche. Revisen los logs.',
+                            professional_hit: 'Este asesinato... fue demasiado limpio. Alguien con recursos, con información privilegiada.'
+                        }
+                    }
+                ],
+                conclusions: [
+                    {
+                        id: 'verdes_infiltrated',
+                        text: 'Los Verdes infiltraron un sicario en la zona y encontraron al informante por casualidad',
+                        correct: false,
+                        explanation: 'Imposible. La casa era secreta, en una ubicación aleatoria. Las cámaras fallaron exactamente cuando ocurrió. Fue planeado, no casualidad.'
+                    },
+                    {
+                        id: 'informant_betrayed_self',
+                        text: 'El informante reveló su ubicación accidentalmente a Los Verdes',
+                        correct: false,
+                        explanation: 'El informante estaba protegido y sin contacto externo. No tenía forma de revelar su ubicación. Alguien más lo hizo.'
+                    },
+                    {
+                        id: 'inside_leak',
+                        text: 'Hay una filtración dentro de la policía - alguien poderoso protege a Los Verdes',
+                        correct: true,
+                        explanation: '¡Correcto! El acceso a la base de datos desde una terminal de alto rango, el timing perfecto, las cámaras "fallando"... Alguien con poder dentro del departamento o el gobierno está protegiendo a Los Verdes. El informante fue vendido desde adentro.'
+                    },
+                    {
+                        id: 'one_of_two_suspects',
+                        text: 'Uno de los dos sospechosos es el culpable directo',
+                        correct: false,
+                        explanation: 'Ninguno de los dos tiene el perfil ni el acceso necesario. El Oficial Mendoza no tiene credenciales de alto rango. La Detective Torres tiene coartada sólida. El verdadero traidor está más arriba en la cadena de mando.'
+                    }
+                ],
+                killerOptions: [
+                    {
+                        id: 'street_cop',
+                        name: 'Oficial Javier Mendoza',
+                        correct: false,
+                        explanation: 'Mendoza es solo un policía de patrulla. No tiene acceso a bases de datos de alto nivel ni recursos para contratar un sicario profesional.'
+                    },
+                    {
+                        id: 'detective_torres',
+                        name: 'Detective Ana Torres',
+                        correct: false,
+                        explanation: 'Torres tiene coartada sólida y su registro es limpio. Además, no tiene el nivel de influencia para desactivar cámaras de seguridad.'
+                    },
+                    {
+                        id: 'unknown_higher',
+                        name: 'Alguien de alto rango en la policía o gobierno (Desconocido)',
+                        correct: true,
+                        explanation: '¡Correcto! El verdadero culpable está más arriba. Alguien con acceso a bases de datos clasificadas, poder para manipular cámaras de seguridad, y conexiones con Los Verdes. No puedes arrestarlo todavía... pero ahora sabes que la corrupción llega hasta arriba.'
+                    }
+                ]
+            },
+            mission4: {
+                // Esta misión es diferente - basada en stealth y revisión de archivos
+                archives: [
+                    {
+                        id: 'case_2019_robbery',
+                        name: 'Caso Atraco Banco Central - 2019',
+                        suspicionRisk: 1, // bajo
+                        important: false,
+                        content: 'Atraco común. Sospechosos capturados. Caso cerrado correctamente.',
+                        signedBy: 'Detective Ramírez'
+                    },
+                    {
+                        id: 'case_2020_verde_drugs',
+                        name: 'Operativo Antidroga Barrio Este - 2020',
+                        suspicionRisk: 2, // medio
+                        important: true,
+                        content: '⚠️ CRÍTICO: Operativo contra Los Verdes. Se incautaron 50kg de droga. Todos los sospechosos fueron liberados por "falta de evidencia". Caso ARCHIVADO.',
+                        signedBy: 'Capitán Rodríguez',
+                        inconsistency: 'Con 50kg incautados, ¿cómo puede haber falta de evidencia?'
+                    },
+                    {
+                        id: 'case_2018_traffic',
+                        name: 'Accidente de Tráfico - 2018',
+                        suspicionRisk: 1,
+                        important: false,
+                        content: 'Accidente vehicular sin víctimas. Caso cerrado.',
+                        signedBy: 'Oficial Martínez'
+                    },
+                    {
+                        id: 'case_2021_verde_witness',
+                        name: 'Testigo Desaparecido - 2021',
+                        suspicionRisk: 3, // alto
+                        important: true,
+                        content: '⚠️ CRÍTICO: Testigo clave contra Los Verdes desapareció antes del juicio. Investigación cerrada como "huida voluntaria". Caso ARCHIVADO.',
+                        signedBy: 'Capitán Rodríguez',
+                        inconsistency: 'El testigo estaba bajo protección policial. ¿Cómo "huyó voluntariamente"?'
+                    },
+                    {
+                        id: 'case_2017_homicide',
+                        name: 'Homicidio Calle 5ta - 2017',
+                        suspicionRisk: 1,
+                        important: false,
+                        content: 'Homicidio resuelto. Perpetrador encarcelado.',
+                        signedBy: 'Detective Torres'
+                    },
+                    {
+                        id: 'case_2022_verde_weapons',
+                        name: 'Tráfico de Armas Ilegales - 2022',
+                        suspicionRisk: 3,
+                        important: true,
+                        content: '⚠️ CRÍTICO: Incautación de arsenal completo vinculado a Los Verdes. Evidencia "extraviada" durante el traslado. Caso ARCHIVADO.',
+                        signedBy: 'Capitán Rodríguez',
+                        inconsistency: 'Evidencia custodiada por la policía no puede simplemente "extraviarse".'
+                    },
+                    {
+                        id: 'case_2023_verde_informant',
+                        name: 'Muerte de Informante - 2023',
+                        suspicionRisk: 3,
+                        important: true,
+                        content: '⚠️ CRÍTICO: Informante contra Los Verdes asesinado. Investigación concluida como "suicidio". Caso ARCHIVADO.',
+                        signedBy: 'Capitán Rodríguez',
+                        inconsistency: 'Informe forense indica signos de forcejeo. No es compatible con suicidio.'
+                    },
+                    {
+                        id: 'case_2020_burglary',
+                        name: 'Robo a Residencia - 2020',
+                        suspicionRisk: 1,
+                        important: false,
+                        content: 'Robo doméstico. Sospechoso identificado y arrestado.',
+                        signedBy: 'Detective Gómez'
+                    }
+                ],
+                guardPatterns: [
+                    { time: 0, location: 'entrance', duration: 5 },
+                    { time: 5, location: 'hallway', duration: 5 },
+                    { time: 10, location: 'archive_room', duration: 3 },
+                    { time: 13, location: 'hallway', duration: 5 },
+                    { time: 18, location: 'entrance', duration: 5 }
+                ],
+                conclusions: [
+                    {
+                        id: 'boss_innocent',
+                        text: 'Las inconsistencias son coincidencias. El Capitán Rodríguez es confiable.',
+                        correct: false,
+                        explanation: 'TODOS los casos archivados con inconsistencias graves están firmados por él. Es demasiada "coincidencia".'
+                    },
+                    {
+                        id: 'boss_incompetent',
+                        text: 'El Capitán es incompetente y cometió errores graves, pero no corrupto.',
+                        correct: false,
+                        explanation: 'Un capitán experimentado no comete TANTOS errores críticos solo en casos de Los Verdes. Hay un patrón intencional.'
+                    },
+                    {
+                        id: 'boss_suspicious_light',
+                        text: 'Hay irregularidades preocupantes, pero necesito más evidencia antes de acusar al Capitán.',
+                        correct: true,
+                        explanation: '¡Correcto! Has detectado un patrón sospechoso: TODOS los casos importantes contra Los Verdes archivados llevan su firma. Pero aún no tienes pruebas concluyentes. Sospechas ligeramente, pero no abiertamente.'
+                    },
+                    {
+                        id: 'boss_definitely_corrupt',
+                        text: 'El Capitán Rodríguez definitivamente trabaja para Los Verdes.',
+                        correct: false,
+                        explanation: 'Aunque hay evidencia circunstancial fuerte, saltar a esta conclusión sin pruebas directas es prematuro y peligroso.'
+                    }
+                ],
+                scapegoatChoice: [
+                    {
+                        id: 'confess',
+                        text: 'Confesar que fuiste tú quien revisó los archivos',
+                        outcome: 'hugo_targeted',
+                        description: 'Asumes la responsabilidad. Serás interrogado y estarás en el radar.'
+                    },
+                    {
+                        id: 'blame_martinez',
+                        text: 'Dejar que sospechen del Detective Javier Martínez (tu compañero)',
+                        outcome: 'martinez_targeted',
+                        description: 'Martínez es inocente pero será interrogado y posiblemente castigado.'
+                    }
+                ]
+            },
+            mission5: {
+                locations: [
+                    {
+                        id: 'office',
+                        name: 'Oficina del Funcionario',
+                        icon: '🏢',
+                        clues: ['body_position', 'locked_door', 'computer_files']
+                    },
+                    {
+                        id: 'desk',
+                        name: 'Escritorio y Documentos',
+                        icon: '📋',
+                        clues: ['draft_complaint', 'financial_records', 'threatening_note']
+                    },
+                    {
+                        id: 'phone_records',
+                        name: 'Registros Telefónicos',
+                        icon: '📞',
+                        clues: ['last_calls', 'deleted_messages', 'anonymous_contact']
+                    },
+                    {
+                        id: 'security',
+                        name: 'Sistema de Seguridad',
+                        icon: '🎥',
+                        clues: ['camera_disabled', 'access_log', 'timing_suspicious']
+                    }
+                ],
+                clues: {
+                    'body_position': { name: 'Posición del Cuerpo', description: 'El funcionario murió en su silla. Un disparo. Suicidio aparente, pero la posición del arma es extraña.' },
+                    'locked_door': { name: 'Puerta Cerrada', description: 'La puerta estaba cerrada desde dentro. Pero ¿cómo salió el asesino?' },
+                    'computer_files': { name: 'Archivos del Computador', description: 'Varios archivos eliminados recientemente. Algo intentaron ocultar.' },
+                    'draft_complaint': { name: 'Borrador de Denuncia', description: '⚠️ CRUCIAL: Un borrador de denuncia oficial contra "alto funcionario policial por encubrimiento y corrupción". No especifica el nombre, pero menciona "casos archivados de Los Verdes".' },
+                    'financial_records': { name: 'Registros Financieros', description: 'El funcionario tenía acceso a auditorías internas. Estaba investigando transferencias sospechosas.' },
+                    'threatening_note': { name: 'Nota Amenazante', description: '⚠️ CRUCIAL: Una nota sin firmar: "Mantén la boca cerrada o tu familia pagará. Sabes demasiado." Recibida hace 2 semanas.' },
+                    'last_calls': { name: 'Últimas Llamadas', description: 'Su última llamada fue al departamento de asuntos internos. Duró 3 minutos.' },
+                    'deleted_messages': { name: 'Mensajes Eliminados', description: '⚠️ CRUCIAL: Mensajes eliminados pero recuperables: "Tengo evidencia contra el Capitán Rodríguez. Mañana presento la denuncia."' },
+                    'anonymous_contact': { name: 'Contacto Anónimo', description: 'Recibió varias llamadas de un número bloqueado los días previos a su muerte.' },
+                    'camera_disabled': { name: 'Cámaras Desactivadas', description: '⚠️ CRUCIAL: Las cámaras del piso fueron "desactivadas por mantenimiento" exactamente durante el horario del asesinato. Requiere acceso administrativo.' },
+                    'access_log': { name: 'Registro de Acceso', description: 'Solo 4 personas tenían acceso al piso esa noche: el funcionario, el guardia de turno, y dos oficiales de alto rango.' },
+                    'timing_suspicious': { name: 'Timing Sospechoso', description: '⚠️ CRUCIAL: El caso fue archivado en menos de 24 horas como "suicidio". Firmado por el Capitán Rodríguez. Ninguna investigación profunda.' }
+                },
+                suspects: [
+                    {
+                        id: 'secretary',
+                        name: 'Laura Méndez',
+                        role: 'Secretaria del Funcionario',
+                        avatar: '👩‍💼',
+                        guilty: false,
+                        questions: {
+                            whereabouts: 'Me fui a las 6 PM, como siempre. No estaba aquí cuando pasó.',
+                            relationship: 'Trabajaba para él hace 5 años. Era un buen hombre, muy correcto.',
+                            knowledge: 'Sé que estaba investigando algo. Parecía preocupado últimamente, pero no me contaba detalles.'
+                        },
+                        clueReveals: {
+                            draft_complaint: 'Dios mío... ¿iba a denunciar a alguien? Nunca me dijo nada específico, pero notaba que tenía miedo.',
+                            threatening_note: 'Él nunca me mostró esto. Si hubiera sabido que su vida estaba en peligro...'
+                        }
+                    },
+                    {
+                        id: 'rival',
+                        name: 'Fiscal Carlos Vega',
+                        role: 'Rival Político',
+                        avatar: '👨‍⚖️',
+                        guilty: false,
+                        questions: {
+                            whereabouts: 'Estaba en mi casa. Tengo coartada. Mi esposa y vecinos me vieron.',
+                            relationship: 'Teníamos diferencias profesionales, sí. Pero jamás le haría daño. Éramos competidores, no enemigos.',
+                            motive: '¿Yo matarlo? Es absurdo. Su muerte no me beneficia en nada.'
+                        },
+                        clueReveals: {
+                            draft_complaint: 'Él me contactó hace un mes. Me dijo que tenía información sobre corrupción policial. Le dije que necesitaba evidencia sólida.',
+                            deleted_messages: 'Capitán Rodríguez... Dios. Si esto es cierto, es más grande de lo que pensé.'
+                        }
+                    },
+                    {
+                        id: 'guard',
+                        name: 'Guardia Tomás Ruiz',
+                        role: 'Guardia de Seguridad Nocturno',
+                        avatar: '👮‍♂️',
+                        guilty: false,
+                        questions: {
+                            whereabouts: 'Estaba en mi puesto. Vi al funcionario entrar a las 8 PM. No salió después de eso.',
+                            suspicious: 'No vi a nadie más entrar. La puerta estaba cerrada desde dentro cuando lo encontramos.',
+                            cameras: 'Las cámaras... sí, estaban en "mantenimiento". Me avisaron por radio esa tarde.'
+                        },
+                        clueReveals: {
+                            camera_disabled: 'Yo solo recibí la orden. Vino desde arriba, desde administración del departamento.',
+                            access_log: 'Solo nosotros teníamos acceso esa noche. Pero... alguien con autoridad podría haber entrado sin registrarse.'
+                        }
+                    }
+                ],
+                conclusions: [
+                    {
+                        id: 'suicide',
+                        text: 'Fue suicidio. El funcionario se quitó la vida por presión laboral.',
+                        correct: false,
+                        explanation: 'Las amenazas, el borrador de denuncia, las cámaras desactivadas y el caso archivado en 24 horas demuestran claramente que fue asesinato.'
+                    },
+                    {
+                        id: 'rival_killed',
+                        text: 'El Fiscal Carlos Vega lo asesinó por rivalidad política.',
+                        correct: false,
+                        explanation: 'Vega tiene coartada sólida y no tenía motivo real. La rivalidad era profesional, no mortal. Además, no tiene autoridad para desactivar cámaras policiales.'
+                    },
+                    {
+                        id: 'verdes_hitman',
+                        text: 'Los Verdes enviaron un sicario para silenciarlo.',
+                        correct: false,
+                        explanation: 'Aunque Los Verdes están involucrados, un sicario externo no podría desactivar cámaras del departamento ni archivar el caso tan rápido. Fue alguien interno.'
+                    },
+                    {
+                        id: 'captain_ordered',
+                        text: 'El asesinato fue ordenado/ejecutado por alguien con poder dentro del departamento para protegerse.',
+                        correct: true,
+                        explanation: '¡Correcto! El funcionario iba a denunciar al Capitán Rodríguez. Las cámaras fueron desactivadas con acceso administrativo, y el caso fue archivado en 24 horas por el mismo Capitán. Fue un asesinato para silenciarlo y proteger la corrupción.'
+                    }
+                ],
+                targetQuestion: [
+                    {
+                        id: 'secretary',
+                        text: 'La secretaria Laura Méndez',
+                        correct: false,
+                        explanation: 'Laura no tenía motivo, no tenía acceso para desactivar cámaras, y no podía archivar el caso. Es completamente inocente.'
+                    },
+                    {
+                        id: 'rival',
+                        text: 'El Fiscal Carlos Vega',
+                        correct: false,
+                        explanation: 'Vega tiene coartada, no controla el departamento de policía, y no podría archivar el caso tan rápido. Es inocente.'
+                    },
+                    {
+                        id: 'guard',
+                        text: 'El Guardia Tomás Ruiz',
+                        correct: false,
+                        explanation: 'Tomás es un simple guardia. No tiene autoridad para desactivar cámaras ni archivar casos. Solo seguía órdenes. Es inocente.'
+                    },
+                    {
+                        id: 'captain',
+                        text: 'El Capitán Rodríguez (mi jefe)',
+                        correct: true,
+                        explanation: '¡Correcto! El funcionario iba a denunciar al Capitán Rodríguez por corrupción. Rodríguez tenía: 1) Motivo (protegerse), 2) Medios (acceso para desactivar cámaras), 3) Oportunidad (poder para entrar sin registro), 4) Encubrimiento (archivó el caso en 24 horas). Todas las pistas apuntan a él.'
+                    }
+                ]
+            }
+        };
+
+        // Referencia a la misión actual
+        let currentMissionData = null;
+
+        // Funciones de renderizado
+        function renderMainMenu() {
+            const screen = document.getElementById('game-screen');
+            screen.innerHTML = `
+                <div class="intro-screen" style="text-align: center; padding: 40px 20px;">
+                    <div style="margin-bottom: 40px;">
+                        <h1 style="font-size: 3.5em; color: #2c3e50; margin-bottom: 10px; text-shadow: 3px 3px 6px rgba(0,0,0,0.2);">
+                            🕵️ LA SOMBRA DE JALEJOS
+                        </h1>
+                        <p style="font-size: 1.3em; color: #7f8c8d; font-style: italic;">
+                            Los secretos más oscuros se esconden en las calles
+                        </p>
+                    </div>
+                    
+                    <div style="max-width: 600px; margin: 0 auto;">
+                        <div class="story-text" style="text-align: left; margin-bottom: 30px;">
+                            <p style="font-size: 1.1em; line-height: 1.8;">
+                                Eres <strong>Hugo L.</strong>, un detective experimentado que trabaja en los casos 
+                                más difíciles de la ciudad. Hace tres años, tu hijo Miguel murió en un tiroteo de pandillas. 
+                                Desde entonces, has dedicado tu vida a limpiar las calles.
+                            </p>
+                            <p style="margin-top: 15px; font-size: 1.1em;">
+                                Las sombras esconden verdades que otros no se atreven a descubrir. Tu reputación está en juego.
+                            </p>
+                        </div>
+                        
+                        <div style="background: white; padding: 25px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                            <h3 style="color: #e67e22; margin-bottom: 15px;">📋 Selecciona tu Misión</h3>
+                            <button class="button" onclick="startMission1()" style="width: 100%; margin-bottom: 15px;">
+                                🔪 Misión 1: El Asesinato del Callejón Oscuro
+                            </button>
+                            <button class="button" onclick="${gameState.mission1Completed ? 'startMission2()' : 'alert(\'Primero debes completar la Misión 1\')'}" 
+                                    style="width: 100%; margin-bottom: 15px; ${!gameState.mission1Completed ? 'opacity: 0.6; cursor: not-allowed;' : ''}" 
+                                    id="mission2-btn">
+                                👨‍👩‍👧‍👦 Misión 2: La Familia Desaparecida
+                                ${!gameState.mission1Completed ? '<span style="display: block; font-size: 0.85em; margin-top: 5px;">🔒 Bloqueada</span>' : ''}
+                            </button>
+                            <button class="button" onclick="${gameState.mission2Completed ? 'startMission3()' : 'alert(\'Primero debes completar la Misión 2\')'}" 
+                                    style="width: 100%; margin-bottom: 15px; ${!gameState.mission2Completed ? 'opacity: 0.6; cursor: not-allowed;' : ''}" 
+                                    id="mission3-btn">
+                                💀 Misión 3: El Informante Silenciado
+                                ${!gameState.mission2Completed ? '<span style="display: block; font-size: 0.85em; margin-top: 5px;">🔒 Bloqueada</span>' : ''}
+                            </button>
+                            <button class="button" onclick="${gameState.mission3Completed ? 'startMission4()' : 'alert(\'Primero debes completar la Misión 3\')'}" 
+                                    style="width: 100%; margin-bottom: 15px; background: linear-gradient(135deg, #8e44ad 0%, #6c3483 100%); ${!gameState.mission3Completed ? 'opacity: 0.6; cursor: not-allowed;' : ''}" 
+                                    id="mission4-btn">
+                                🔐 Misión 4: Archivos Clasificados
+                                <span style="display: block; font-size: 0.85em; margin-top: 5px;">⚠️ Misión Privada de Hugo</span>
+                                ${!gameState.mission3Completed ? '<span style="display: block; font-size: 0.85em; margin-top: 5px;">🔒 Bloqueada</span>' : ''}
+                            </button>
+                            <button class="button" onclick="${gameState.mission4Completed ? 'startMission5()' : 'alert(\'Primero debes completar la Misión 4\')'}" 
+                                    style="width: 100%; background: linear-gradient(135deg, #c0392b 0%, #8e2a1f 100%); ${!gameState.mission4Completed ? 'opacity: 0.6; cursor: not-allowed;' : ''}" 
+                                    id="mission5-btn">
+                                ⚖️ Misión 5: El Funcionario Silenciado
+                                <span style="display: block; font-size: 0.85em; margin-top: 5px;">🔥 La Verdad al Descubierto</span>
+                                ${!gameState.mission4Completed ? '<span style="display: block; font-size: 0.85em; margin-top: 5px;">🔒 Bloqueada</span>' : ''}
+                            </button>
+                        </div>
+                        
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; font-size: 0.9em; color: #555; margin-bottom: 15px;">
+                            <strong>💡 Consejo:</strong> Lee todas las pistas cuidadosamente. Los detalles importan.
+                        </div>
+
+                        <div style="text-align: center;">
+                            <button class="button button-secondary" onclick="resetProgress()" style="font-size: 0.9em; padding: 10px 20px;">
+                                🔄 Reiniciar Progreso
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderIntro() {
+            const screen = document.getElementById('game-screen');
+            screen.innerHTML = `
+                <div class="intro-screen">
+                    <div class="story-text">
+                        <h2 style="color: #e67e22; margin-bottom: 15px;">🔍 El Asesinato del Callejón Oscuro</h2>
+                        <p style="margin-bottom: 15px;">
+                            <strong>11:30 PM - Callejón del Distrito Este</strong>
+                        </p>
+                        <p style="margin-bottom: 15px;">
+                            Un vagabundo ha sido encontrado muerto en un oscuro callejón. La escena sugiere un robo que salió mal: 
+                            cartera vacía, signos de violencia, y el cuerpo abandonado sin piedad. Otro caso más de la cruel realidad 
+                            de las calles...
+                        </p>
+                        <p style="margin-bottom: 15px;">
+                            Pero algo no cuadra. Las heridas son demasiado precisas, demasiado calculadas para ser un simple robo. 
+                            Y luego está ese extraño símbolo verde en la pared...
+                        </p>
+                        <p style="margin-bottom: 0;">
+                            Tu misión: <strong>Descubre la verdad detrás de este asesinato. ¿Fue realmente un robo que salió mal, 
+                            o hay algo mucho más oscuro detrás?</strong>
+                        </p>
+                    </div>
+                    <div style="text-align: center;">
+                        <button class="button" onclick="startGame()">🎮 Comenzar Investigación</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderIntroMission2() {
+            const screen = document.getElementById('game-screen');
+            screen.innerHTML = `
+                <div class="intro-screen">
+                    <div class="story-text">
+                        <h2 style="color: #e67e22; margin-bottom: 15px;">👨‍👩‍👧‍👦 La Familia Desaparecida</h2>
+                        <p style="margin-bottom: 15px;">
+                            <strong>8:00 AM - Residencia de la Familia Ramírez</strong>
+                        </p>
+                        <p style="margin-bottom: 15px;">
+                            Los vecinos reportaron que la familia Ramírez no ha sido vista en 24 horas. Al entrar a la casa, 
+                            encuentras una escena desconcertante: todo está intacto, la comida todavía está fresca, el televisor 
+                            encendido... pero no hay rastro de la familia.
+                        </p>
+                        <p style="margin-bottom: 15px;">
+                            No hay signos de violencia. No hay signos de robo. Simplemente... desaparecieron.
+                        </p>
+                        <p style="margin-bottom: 15px; padding: 15px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 5px;">
+                            <strong>⚠️ ADVERTENCIA:</strong> Esta misión no tiene sospechosos. Debes llegar a la conclusión correcta 
+                            basándote únicamente en las pistas. <strong style="color: #dc3545;">Si fallas, serás despedido del cuerpo 
+                            de detectives.</strong>
+                        </p>
+                        <p style="margin-bottom: 0;">
+                            Tu primera impresión, detective Hugo L.: <em>"Parece que huyeron tras ser amenazados... 
+                            pero necesito pruebas para confirmarlo."</em>
+                        </p>
+                    </div>
+                    <div style="text-align: center;">
+                        <button class="button" onclick="startGameMission2()">🎮 Comenzar Investigación</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderIntroMission3() {
+            const screen = document.getElementById('game-screen');
+            screen.innerHTML = `
+                <div class="intro-screen">
+                    <div class="story-text">
+                        <h2 style="color: #e67e22; margin-bottom: 15px;">💀 El Informante Silenciado</h2>
+                        <p style="margin-bottom: 15px;">
+                            <strong>3:45 AM - Casa de Seguridad Policial</strong>
+                        </p>
+                        <p style="margin-bottom: 15px;">
+                            Recibes la llamada que todo detective teme: un informante clave contra Los Verdes ha sido asesinado. 
+                            Debía testificar mañana en el juicio más importante del año. Estaba en una casa de seguridad, 
+                            ubicación clasificada, conocida solo por un puñado de personas de confianza.
+                        </p>
+                        <p style="margin-bottom: 15px;">
+                            Al llegar a la escena, todo apunta a una ejecución profesional. Un disparo limpio, sin testigos, 
+                            sin lucha. Las cámaras de seguridad "casualmente" fallaron durante el ataque.
+                        </p>
+                        <p style="margin-bottom: 15px; padding: 15px; background: #f8d7da; border-left: 4px solid #dc3545; border-radius: 5px;">
+                            <strong>⚠️ CASO ALTAMENTE SENSIBLE:</strong> Solo hay 2 sospechosos disponibles para interrogar. 
+                            Las pistas son escasas y ambiguas. Debes sacar la conclusión correcta sobre lo que realmente pasó 
+                            Y identificar al responsable. <strong style="color: #dc3545;">Si fallas en cualquiera de las dos 
+                            preguntas, serás despedido.</strong>
+                        </p>
+                        <p style="margin-bottom: 15px; padding: 15px; background: #d4edda; border-left: 4px solid #28a745; border-radius: 5px;">
+                            El Capitán Rodríguez te llama aparte: <em>"Hugo, sé que perdiste a Miguel por culpa de estas pandillas. 
+                            Sé lo que significa esto para ti. Pero necesito que mantengas la cabeza fría. Este caso... podría 
+                            ser más peligroso de lo que imaginas. Ten cuidado en quién confías."</em>
+                        </p>
+                        <p style="margin-bottom: 0;">
+                            Algo no está bien. Muy arriba. Y estás a punto de descubrirlo.
+                        </p>
+                    </div>
+                    <div style="text-align: center;">
+                        <button class="button" onclick="startGameMission3()">🎮 Comenzar Investigación</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderMission4Unlock() {
+            const screen = document.getElementById('game-screen');
+            screen.innerHTML = `
+                <div class="end-screen">
+                    <div class="story-text" style="max-width: 700px; margin: 0 auto;">
+                        <h2 style="color: #8e44ad; margin-bottom: 20px; text-align: center;">🔐 Misión Desbloqueada</h2>
+                        
+                        <div style="background: #2c3e50; color: white; padding: 25px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+                            <h3 style="color: #ecf0f1; margin-bottom: 15px; text-align: center;">⚠️ MISIÓN PRIVADA ⚠️</h3>
+                            <p style="margin-bottom: 15px; font-style: italic;">
+                                2:30 AM - Tres días después del caso del informante
+                            </p>
+                            <p style="margin-bottom: 15px;">
+                                No puedes sacártelo de la cabeza. Alguien con acceso privilegiado está protegiendo a Los Verdes. 
+                                Los casos se archivan misteriosamente. Los informantes mueren. Las evidencias desaparecen.
+                            </p>
+                            <p style="margin-bottom: 15px;">
+                                <strong>¿Y si la respuesta está en los archivos del departamento?</strong>
+                            </p>
+                            <p style="margin-bottom: 15px; padding: 15px; background: rgba(231, 76, 60, 0.2); border-left: 4px solid #e74c3c; border-radius: 5px;">
+                                Esta no es una misión oficial. Nadie puede saber lo que estás a punto de hacer. 
+                                Si te descubren, tu carrera termina. Pero si no actúas... Los Verdes ganan.
+                            </p>
+                            <p style="margin-bottom: 0; font-style: italic; text-align: center;">
+                                <em>"Por Miguel... tengo que descubrir la verdad."</em>
+                            </p>
+                        </div>
+                        
+                        <div style="text-align: center;">
+                            <button class="button" style="background: linear-gradient(135deg, #8e44ad 0%, #6c3483 100%);" onclick="startMission4()">
+                                🌙 Comenzar Misión Nocturna
+                            </button>
+                            <button class="button button-secondary" onclick="location.reload()">🏠 Volver al Menú</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderMission5Unlock() {
+            const screen = document.getElementById('game-screen');
+            screen.innerHTML = `
+                <div class="end-screen">
+                    <div class="story-text" style="max-width: 700px; margin: 0 auto;">
+                        <h2 style="color: #c0392b; margin-bottom: 20px; text-align: center;">🔥 Nueva Misión Desbloqueada</h2>
+                        
+                        <div style="background: #2c3e50; color: white; padding: 25px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+                            <h3 style="color: #e74c3c; margin-bottom: 15px; text-align: center;">⚠️ CASO ARCHIVADO ⚠️</h3>
+                            <p style="margin-bottom: 15px; font-style: italic;">
+                                La llamada anónima te dio una pista. El funcionario Eduardo García, del departamento de 
+                                auditoría interna, fue encontrado muerto en su oficina hace un mes.
+                            </p>
+                            <p style="margin-bottom: 15px;">
+                                <strong>Causa oficial: Suicidio.</strong>
+                            </p>
+                            <p style="margin-bottom: 15px;">
+                                Pero según tu fuente anónima, García estaba a punto de presentar una denuncia formal contra 
+                                alguien de alto rango. El caso fue archivado en menos de 24 horas.
+                            </p>
+                            <p style="margin-bottom: 15px; padding: 15px; background: rgba(231, 76, 60, 0.2); border-left: 4px solid #e74c3c; border-radius: 5px;">
+                                <strong>Tu misión:</strong> Investiga oficialmente el caso como "revisión rutinaria". 
+                                Descubre a quién iba a denunciar García y qué pasó realmente. Pero ten cuidado... 
+                                si el asesino descubre que estás cerca de la verdad, podrías ser el siguiente.
+                            </p>
+                            <p style="margin-bottom: 0; font-style: italic; text-align: center; color: #e74c3c; font-weight: bold;">
+                                "Por Javier. Por Miguel. Por García. Esta termina ahora."
+                            </p>
+                        </div>
+                        
+                        <div style="text-align: center;">
+                            <button class="button" style="background: linear-gradient(135deg, #c0392b 0%, #8e2a1f 100%);" onclick="startMission5()">
+                                🔍 Reabrir el Caso García
+                            </button>
+                            <button class="button button-secondary" onclick="location.reload()">🏠 Volver al Menú</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderIntroMission5() {
+            const screen = document.getElementById('game-screen');
+            screen.innerHTML = `
+                <div class="intro-screen">
+                    <div class="story-text">
+                        <h2 style="color: #c0392b; margin-bottom: 15px;">⚖️ El Funcionario Silenciado</h2>
+                        <p style="margin-bottom: 15px;">
+                            <strong>9:00 AM - Oficina de Eduardo García (Escena del Crimen)</strong>
+                        </p>
+                        <p style="margin-bottom: 15px;">
+                            Oficialmente, estás aquí para una "revisión rutinaria" del caso. Nadie sospecha tus verdaderas 
+                            intenciones. Eduardo García, 47 años, auditor interno del departamento, fue encontrado muerto 
+                            con un disparo en la cabeza en su oficina.
+                        </p>
+                        <p style="margin-bottom: 15px;">
+                            La escena fue clasificada como suicidio. La puerta estaba cerrada desde dentro. El arma estaba 
+                            en su mano. Caso cerrado en 24 horas.
+                        </p>
+                        <p style="margin-bottom: 15px; padding: 15px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 5px;">
+                            <strong>⚠️ MISIÓN DUAL:</strong><br>
+                            1. Investiga el asesinato (hay 3 sospechosos, todos inocentes pero parecen culpables)<br>
+                            2. Descubre a quién iba a denunciar García<br>
+                            <strong style="color: #dc3545;">Debes acertar AMBAS conclusiones o serás despedido.</strong>
+                        </p>
+                        <p style="margin-bottom: 15px; padding: 15px; background: #d4edda; border-left: 4px solid #28a745; border-radius: 5px;">
+                            Tu instinto de detective te dice: <em>"Esto NO fue suicidio. Y si descubro que era mi jefe 
+                            a quien iba a denunciar... tendré que tomar una decisión que cambiará todo."</em>
+                        </p>
+                        <p style="margin-bottom: 0;">
+                            Las pistas están esperando. La verdad está cerca. ¿Estás listo para descubrirla?
+                        </p>
+                    </div>
+                    <div style="text-align: center;">
+                        <button class="button" style="background: linear-gradient(135deg, #c0392b 0%, #8e2a1f 100%);" onclick="startGameMission5()">
+                            🎮 Comenzar Investigación
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderIntroMission4() {
+            const screen = document.getElementById('game-screen');
+            screen.innerHTML = `
+                <div class="intro-screen">
+                    <div class="story-text">
+                        <h2 style="color: #8e44ad; margin-bottom: 15px;">🔐 Archivos Clasificados</h2>
+                        <p style="margin-bottom: 15px;">
+                            <strong>2:45 AM - Estación de Policía (Sala de Archivos)</strong>
+                        </p>
+                        <p style="margin-bottom: 15px;">
+                            Usaste tu tarjeta de acceso para entrar al edificio. Oficialmente, viniste a recoger unos documentos. 
+                            Pero tu verdadero objetivo está en el sótano: <strong>la sala de casos archivados</strong>.
+                        </p>
+                        <p style="margin-bottom: 15px;">
+                            Hay guardias de seguridad patrullando. Debes ser cauteloso. Revisar los archivos equivocados podría 
+                            levantar sospechas. Y si te descubren en esta misión no autorizada...
+                        </p>
+                        <p style="margin-bottom: 15px; padding: 15px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 5px;">
+                            <strong>⚠️ MECÁNICAS ESPECIALES:</strong><br>
+                            • Debes revisar archivos para encontrar patrones sospechosos<br>
+                            • Algunos archivos levantan MÁS sospecha que otros<br>
+                            • Si la sospecha es muy alta, los guardias te detectarán<br>
+                            • Debes llegar a la conclusión correcta sobre las inconsistencias<br>
+                            • Al final, alguien será culpado por la intrusión...
+                        </p>
+                        <p style="margin-bottom: 0; padding: 15px; background: #f8d7da; border-left: 4px solid #dc3545; border-radius: 5px;">
+                            <strong style="color: #dc3545;">DECISIÓN CRÍTICA:</strong> Cuando te descubran que alguien revisó 
+                            los archivos, tendrás que decidir si confesar que fuiste tú o dejar que sospechen de un compañero 
+                            inocente. Esta decisión tendrá consecuencias fatales.
+                        </p>
+                    </div>
+                    <div style="text-align: center;">
+                        <button class="button" style="background: linear-gradient(135deg, #8e44ad 0%, #6c3483 100%);" onclick="startGameMission4()">
+                            🔦 Entrar a la Sala de Archivos
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderLocationSelect() {
+            const screen = document.getElementById('game-screen');
+            const visitedLocations = gameState.cluesFound.map(c => {
+                for (let loc of currentMissionData.locations) {
+                    if (loc.clues.includes(c)) return loc.id;
+                }
+            });
+
+            let locationsHTML = currentMissionData.locations.map(loc => {
+                const visited = visitedLocations.includes(loc.id);
+                return `
+                    <div class="location-card ${visited ? 'visited' : ''}" onclick="exploreLocation('${loc.id}')">
+                        <div class="location-icon">${loc.icon}</div>
+                        <div class="location-name">${loc.name}</div>
+                        ${visited ? '<div class="badge">Visitado</div>' : ''}
+                    </div>
+                `;
+            }).join('');
+
+            const totalClues = gameState.currentMission === 1 ? 9 : (gameState.currentMission === 2 ? 12 : (gameState.currentMission === 3 ? 9 : 12));
+            const minClues = gameState.currentMission === 1 ? 4 : (gameState.currentMission === 2 ? 8 : (gameState.currentMission === 3 ? 6 : 8));
+            
+            // Botones de acción según la misión
+            let actionButtons = '';
+            if (gameState.currentMission === 1) {
+                actionButtons = `
+                    <button class="button button-secondary" onclick="renderSuspectSelect()">👥 Interrogar Sospechosos</button>
+                    ${gameState.cluesFound.length >= minClues ? '<button class="button" onclick="renderAccusation()">⚖️ Hacer Acusación</button>' : ''}
+                `;
+            } else if (gameState.currentMission === 2) {
+                actionButtons = `
+                    ${gameState.cluesFound.length >= minClues ? '<button class="button" onclick="renderConclusions()">🎯 Presentar Conclusión</button>' : ''}
+                `;
+            } else if (gameState.currentMission === 3) {
+                actionButtons = `
+                    <button class="button button-secondary" onclick="renderSuspectSelect()">👥 Interrogar Sospechosos</button>
+                    ${gameState.cluesFound.length >= minClues ? '<button class="button" onclick="renderMission3Conclusions()">🎯 Presentar Conclusión Final</button>' : ''}
+                `;
+            } else if (gameState.currentMission === 5) {
+                actionButtons = `
+                    <button class="button button-secondary" onclick="renderSuspectSelect()">👥 Interrogar Sospechosos</button>
+                    ${gameState.cluesFound.length >= minClues ? '<button class="button" style="background: linear-gradient(135deg, #c0392b 0%, #8e2a1f 100%);" onclick="renderMission5Conclusions()">🎯 Presentar Conclusión Final</button>' : ''}
+                `;
+            }
+
+            screen.innerHTML = `
+                <div class="location-screen">
+                    <div class="story-text">
+                        <h2 style="color: #e67e22; margin-bottom: 10px;">📍 Selecciona una Ubicación</h2>
+                        <p>Explora diferentes áreas para encontrar pistas que te ayuden a resolver el caso.</p>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${(gameState.cluesFound.length / totalClues) * 100}%"></div>
+                        </div>
+                    </div>
+                    <div class="location-grid">
+                        ${locationsHTML}
+                    </div>
+                    <div style="text-align: center; margin-top: 20px;">
+                        ${actionButtons}
+                    </div>
+                    ${renderNotebook()}
+                </div>
+            `;
+        }
+
+        function exploreLocation(locationId) {
+            const location = currentMissionData.locations.find(l => l.id === locationId);
+            gameState.currentLocation = locationId;
+
+            const cluesHTML = location.clues.map(clueId => {
+                const clue = currentMissionData.clues[clueId];
+                const found = gameState.cluesFound.includes(clueId);
+                return `
+                    <div class="clue-item ${found ? 'clue-found' : ''}" onclick="${!found ? `findClue('${clueId}')` : ''}">
+                        <strong>${found ? '✅' : '🔍'} ${clue.name}</strong>
+                        ${found ? `<p style="margin-top: 8px; color: #555;">${clue.description}</p>` : ''}
+                    </div>
+                `;
+            }).join('');
+
+            const screen = document.getElementById('game-screen');
+            screen.innerHTML = `
+                <div class="location-screen">
+                    <div class="story-text">
+                        <h2 style="color: #e67e22;">${location.icon} ${location.name}</h2>
+                        <p>Busca cuidadosamente en esta área. Haz clic en las pistas para examinarlas.</p>
+                    </div>
+                    <div class="clue-search">
+                        <h3 style="margin-bottom: 15px;">🔎 Buscar Pistas</h3>
+                        ${cluesHTML}
+                    </div>
+                    <div style="text-align: center;">
+                        <button class="button button-secondary" onclick="renderLocationSelect()">⬅️ Volver a Ubicaciones</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function findClue(clueId) {
+            if (!gameState.cluesFound.includes(clueId)) {
+                gameState.cluesFound.push(clueId);
+                updateStats();
+                exploreLocation(gameState.currentLocation);
+            }
+        }
+
+        function renderSuspectSelect() {
+            const screen = document.getElementById('game-screen');
+            const suspectsHTML = currentMissionData.suspects.map(suspect => {
+                const questioned = gameState.suspectsQuestioned.includes(suspect.id);
+                return `
+                    <div class="suspect-card ${questioned ? 'questioned' : ''}" onclick="interrogateSuspect('${suspect.id}')">
+                        <div class="suspect-avatar">${suspect.avatar}</div>
+                        <div class="suspect-name">${suspect.name}</div>
+                        <div class="suspect-role">${suspect.role}</div>
+                        ${questioned ? '<div class="badge">Interrogado</div>' : ''}
+                    </div>
+                `;
+            }).join('');
+
+            screen.innerHTML = `
+                <div class="interrogation-screen">
+                    <div class="story-text">
+                        <h2 style="color: #e67e22; margin-bottom: 10px;">👥 Selecciona un Sospechoso</h2>
+                        <p>Interroga a los sospechosos. Sus respuestas pueden revelar información crucial.</p>
+                    </div>
+                    <div class="suspect-grid">
+                        ${suspectsHTML}
+                    </div>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button class="button button-secondary" onclick="renderLocationSelect()">⬅️ Volver a Ubicaciones</button>
+                    </div>
+                    ${renderNotebook()}
+                </div>
+            `;
+        }
+
+        function interrogateSuspect(suspectId) {
+            const suspect = currentMissionData.suspects.find(s => s.id === suspectId);
+            gameState.currentSuspect = suspectId;
+
+            if (!gameState.suspectsQuestioned.includes(suspectId)) {
+                gameState.suspectsQuestioned.push(suspectId);
+                updateStats();
+            }
+
+            const questionsHTML = Object.entries(suspect.questions).map(([key, answer]) => {
+                return `
+                    <button class="question-btn" onclick="askQuestion('${suspectId}', '${key}', \`${answer}\`)">
+                        ${getQuestionText(key)}
+                    </button>
+                `;
+            }).join('');
+
+            // Revisar si hay pistas que revelan información adicional
+            let clueRevealHTML = '';
+            if (suspect.clueReveals) {
+                for (let [clueId, reveal] of Object.entries(suspect.clueReveals)) {
+                    if (gameState.cluesFound.includes(clueId)) {
+                        clueRevealHTML += `
+                            <div class="answer-box" style="background: #fff3cd; border-left-color: #ffc107;">
+                                <strong>💡 Confrontando con: ${currentMissionData.clues[clueId].name}</strong>
+                                <p style="margin-top: 8px;">"${reveal}"</p>
+                            </div>
+                        `;
+                    }
+                }
+            }
+
+            const screen = document.getElementById('game-screen');
+            screen.innerHTML = `
+                <div class="interrogation-screen">
+                    <div class="story-text">
+                        <h2 style="color: #e67e22;">${suspect.avatar} Interrogatorio: ${suspect.name}</h2>
+                        <p><em>${suspect.role}</em></p>
+                    </div>
+                    <div class="question-box">
+                        <h3 style="margin-bottom: 15px;">❓ Selecciona una Pregunta</h3>
+                        <div class="question-options" id="question-area">
+                            ${questionsHTML}
+                        </div>
+                        <div id="answer-area">${clueRevealHTML}</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <button class="button button-secondary" onclick="renderSuspectSelect()">⬅️ Volver a Sospechosos</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function askQuestion(suspectId, questionKey, answer) {
+            const answerArea = document.getElementById('answer-area');
+            const newAnswer = `
+                <div class="answer-box">
+                    <strong>Respuesta:</strong>
+                    <p style="margin-top: 8px;">"${answer}"</p>
+                </div>
+            `;
+            answerArea.innerHTML = newAnswer + answerArea.innerHTML;
+        }
+
+        function getQuestionText(key) {
+            const questions = {
+                whereabouts: '📍 ¿Dónde estabas durante el robo?',
+                motive: '💰 ¿Tienes algún motivo para robar el diamante?',
+                access: '🔑 ¿Tenías acceso a la bóveda?'
+            };
+            return questions[key] || key;
+        }
+
+        function renderAccusation() {
+            const screen = document.getElementById('game-screen');
+            const suspectsHTML = currentMissionData.suspects.map(suspect => {
+                return `
+                    <button class="question-btn" onclick="makeAccusation('${suspect.id}')" style="text-align: center;">
+                        ${suspect.avatar} ${suspect.name} - ${suspect.role}
+                    </button>
+                `;
+            }).join('');
+
+            screen.innerHTML = `
+                <div class="end-screen">
+                    <div class="accusation-panel">
+                        <h2 style="color: #e67e22; margin-bottom: 15px;">⚖️ Momento de la Verdad</h2>
+                        <p style="margin-bottom: 20px;">
+                            Has reunido suficiente información. Es hora de hacer tu acusación.
+                            <strong>¡Elige con cuidado, solo tienes una oportunidad!</strong>
+                        </p>
+                        <h3 style="margin-bottom: 15px;">¿Quién asesinó al vagabundo?</h3>
+                        ${suspectsHTML}
+                    </div>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button class="button button-secondary" onclick="renderLocationSelect()">⬅️ Seguir Investigando</button>
+                    </div>
+                    ${renderNotebook()}
+                </div>
+            `;
+        }
+
+        function renderConclusions() {
+            const screen = document.getElementById('game-screen');
+            const conclusionsHTML = currentMissionData.conclusions.map(conclusion => {
+                return `
+                    <button class="question-btn" onclick="makeConclusion('${conclusion.id}')" style="text-align: center; padding: 20px;">
+                        ${conclusion.text}
+                    </button>
+                `;
+            }).join('');
+
+            screen.innerHTML = `
+                <div class="end-screen">
+                    <div class="accusation-panel">
+                        <h2 style="color: #e67e22; margin-bottom: 15px;">🎯 Momento de la Verdad</h2>
+                        <p style="margin-bottom: 15px;">
+                            Has reunido suficiente información sobre la desaparición de la familia Ramírez.
+                        </p>
+                        <p style="margin-bottom: 20px; color: #dc3545; font-weight: bold;">
+                            ⚠️ ADVERTENCIA: Solo tienes una oportunidad. Si te equivocas, serás despedido.
+                        </p>
+                        <h3 style="margin-bottom: 15px;">¿Cuál es tu conclusión, Detective Hugo L.?</h3>
+                        ${conclusionsHTML}
+                    </div>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button class="button button-secondary" onclick="renderLocationSelect()">⬅️ Seguir Investigando</button>
+                    </div>
+                    ${renderNotebook()}
+                </div>
+            `;
+        }
+
+        function makeConclusion(conclusionId) {
+            stopTimer();
+            const conclusion = currentMissionData.conclusions.find(c => c.id === conclusionId);
+            const correct = conclusion.correct;
+
+            const screen = document.getElementById('game-screen');
+            if (correct) {
+                gameState.mission2Completed = true;
+                saveProgress();
+                screen.innerHTML = `
+                    <div class="end-screen">
+                        <div class="result-box result-success">
+                            <h1 style="color: #28a745; margin-bottom: 20px;">✅ ¡CONCLUSIÓN CORRECTA!</h1>
+                            <div style="font-size: 5em; margin: 20px 0;">🎯</div>
+                            <h2 style="margin-bottom: 15px;">Excelente trabajo, Detective Hugo L.</h2>
+                            <div class="story-text" style="text-align: left;">
+                                <p style="margin-bottom: 15px;">
+                                    <strong>Tu conclusión:</strong> ${conclusion.text}
+                                </p>
+                                <p style="margin-bottom: 20px; padding: 15px; background: #d4edda; border-left: 4px solid #28a745; border-radius: 5px;">
+                                    ${conclusion.explanation}
+                                </p>
+                                <hr style="margin: 25px 0; border: none; border-top: 2px solid #e0e0e0;">
+                                <p style="margin-bottom: 15px; font-style: italic; color: #555;">
+                                    Apenas terminas de escribir tu informe cuando tu teléfono suena. 3:30 AM. Es el jefe, y suena preocupado...
+                                </p>
+                            </div>
+                            <div style="margin-top: 25px;">
+                                <button class="button" onclick="renderBossDialogue()">📞 Contestar Llamada</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                screen.innerHTML = `
+                    <div class="end-screen">
+                        <div class="result-box result-failure">
+                            <h1 style="color: #dc3545; margin-bottom: 20px;">❌ CONCLUSIÓN INCORRECTA</h1>
+                            <div style="font-size: 5em; margin: 20px 0;">😞</div>
+                            <h2 style="margin-bottom: 15px;">Has sido despedido, Hugo L.</h2>
+                            <div class="story-text" style="text-align: left;">
+                                <p style="margin-bottom: 15px;">
+                                    <strong>Tu conclusión:</strong> ${conclusion.text}
+                                </p>
+                                <p style="margin-bottom: 15px; padding: 15px; background: #f8d7da; border-left: 4px solid #dc3545; border-radius: 5px;">
+                                    <strong>Por qué estabas equivocado:</strong><br>
+                                    ${conclusion.explanation}
+                                </p>
+                                <hr style="margin: 20px 0; border: none; border-top: 2px solid #e0e0e0;">
+                                <p style="margin-bottom: 15px;">
+                                    <strong style="color: #e67e22;">La conclusión correcta era:</strong><br>
+                                    ${currentMissionData.conclusions.find(c => c.correct).text}
+                                </p>
+                                <p style="margin-bottom: 15px;">
+                                    ${currentMissionData.conclusions.find(c => c.correct).explanation}
+                                </p>
+                                <hr style="margin: 20px 0; border: none; border-top: 2px solid #e0e0e0;">
+                                <p style="font-style: italic; color: #555;">
+                                    El jefe te llama a su oficina. "Hugo, lo siento pero tu placa y tu arma. 
+                                    No podemos permitirnos este tipo de errores. Estás fuera."
+                                </p>
+                            </div>
+                            <div style="margin-top: 25px;">
+                                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                                    <strong>Estadísticas del Caso:</strong><br>
+                                    🔍 Pistas encontradas: ${gameState.cluesFound.length}/12<br>
+                                    ⏱️ Tiempo usado: ${formatTime(1500 - gameState.timeRemaining)}
+                                </div>
+                                <button class="button" onclick="location.reload()">🔄 Volver al Menú</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function renderMission3Conclusions() {
+            const screen = document.getElementById('game-screen');
+            const conclusionsHTML = currentMissionData.conclusions.map(conclusion => {
+                return `
+                    <button class="question-btn" onclick="saveMission3Conclusion('${conclusion.id}')" style="text-align: center; padding: 20px;">
+                        ${conclusion.text}
+                    </button>
+                `;
+            }).join('');
+
+            screen.innerHTML = `
+                <div class="end-screen">
+                    <div class="accusation-panel">
+                        <h2 style="color: #e67e22; margin-bottom: 15px;">🎯 Parte 1: ¿Qué Pasó Realmente?</h2>
+                        <p style="margin-bottom: 15px;">
+                            Has investigado el asesinato del informante. Ahora debes responder dos preguntas cruciales.
+                        </p>
+                        <p style="margin-bottom: 20px; color: #dc3545; font-weight: bold;">
+                            ⚠️ ADVERTENCIA: Debes acertar AMBAS preguntas. Si fallas cualquiera de las dos, serás despedido.
+                        </p>
+                        <h3 style="margin-bottom: 15px;">Primera Pregunta: ¿Cuál es la conclusión correcta sobre lo que ocurrió?</h3>
+                        ${conclusionsHTML}
+                    </div>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button class="button button-secondary" onclick="renderLocationSelect()">⬅️ Seguir Investigando</button>
+                    </div>
+                    ${renderNotebook()}
+                </div>
+            `;
+        }
+
+        let mission3SelectedConclusion = null;
+
+        function saveMission3Conclusion(conclusionId) {
+            mission3SelectedConclusion = conclusionId;
+            renderMission3KillerSelect();
+        }
+
+        function renderMission3KillerSelect() {
+            const screen = document.getElementById('game-screen');
+            const killersHTML = currentMissionData.killerOptions.map(killer => {
+                return `
+                    <button class="question-btn" onclick="makeMission3FinalAnswer('${killer.id}')" style="text-align: center; padding: 20px;">
+                        ${killer.name}
+                    </button>
+                `;
+            }).join('');
+
+            screen.innerHTML = `
+                <div class="end-screen">
+                    <div class="accusation-panel">
+                        <h2 style="color: #e67e22; margin-bottom: 15px;">🎯 Parte 2: ¿Quién es el Responsable?</h2>
+                        <p style="margin-bottom: 15px;">
+                            Has determinado lo que pasó. Ahora identifica quién es el verdadero responsable del asesinato.
+                        </p>
+                        <p style="margin-bottom: 20px; color: #dc3545; font-weight: bold;">
+                            ⚠️ Esta es tu decisión final. No hay vuelta atrás.
+                        </p>
+                        <h3 style="margin-bottom: 15px;">Segunda Pregunta: ¿Quién mató al informante?</h3>
+                        ${killersHTML}
+                    </div>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button class="button button-secondary" onclick="renderMission3Conclusions()">⬅️ Cambiar Conclusión</button>
+                    </div>
+                    ${renderNotebook()}
+                </div>
+            `;
+        }
+
+        function makeMission3FinalAnswer(killerId) {
+            stopTimer();
+            const conclusion = currentMissionData.conclusions.find(c => c.id === mission3SelectedConclusion);
+            const killer = currentMissionData.killerOptions.find(k => k.id === killerId);
+            
+            const conclusionCorrect = conclusion.correct;
+            const killerCorrect = killer.correct;
+            const bothCorrect = conclusionCorrect && killerCorrect;
+
+            const screen = document.getElementById('game-screen');
+            
+            if (bothCorrect) {
+                gameState.mission3Completed = true;
+                saveProgress();
+                screen.innerHTML = `
+                    <div class="end-screen">
+                        <div class="result-box result-success">
+                            <h1 style="color: #28a745; margin-bottom: 20px;">✅ ¡CASO RESUELTO!</h1>
+                            <div style="font-size: 5em; margin: 20px 0;">🎯</div>
+                            <h2 style="margin-bottom: 15px;">Has descubierto la verdad, Detective Hugo L.</h2>
+                            <div class="story-text" style="text-align: left;">
+                                <h3 style="color: #e67e22; margin-bottom: 15px;">Tus Conclusiones:</h3>
+                                <div style="background: #d4edda; padding: 15px; border-left: 4px solid #28a745; border-radius: 5px; margin-bottom: 15px;">
+                                    <strong>¿Qué pasó?</strong><br>
+                                    ${conclusion.text}<br><br>
+                                    ${conclusion.explanation}
+                                </div>
+                                <div style="background: #d4edda; padding: 15px; border-left: 4px solid #28a745; border-radius: 5px; margin-bottom: 20px;">
+                                    <strong>¿Quién es el responsable?</strong><br>
+                                    ${killer.name}<br><br>
+                                    ${killer.explanation}
+                                </div>
+                                <hr style="margin: 25px 0; border: none; border-top: 2px solid #e0e0e0;">
+                                <div style="background: #fff3cd; padding: 20px; border-left: 4px solid #ffc107; border-radius: 5px; margin-bottom: 20px;">
+                                    <h3 style="color: #e67e22; margin-bottom: 10px;">La Verdad Revelada</h3>
+                                    <p style="margin-bottom: 15px;">
+                                        Has descubierto algo que cambiará todo: <strong>Los Verdes tienen protección desde dentro 
+                                        de las instituciones.</strong> Alguien con poder real está en su nómina.
+                                    </p>
+                                    <p style="margin-bottom: 15px;">
+                                        El Capitán Rodríguez lee tu informe con expresión sombría. "Hugo... esto es más grave de lo 
+                                        que imaginé. Si esto se filtra a las personas equivocadas... ambos estamos muertos."
+                                    </p>
+                                    <p style="margin-bottom: 15px;">
+                                        "Necesitamos más evidencia antes de mover ficha. Pero ahora sabemos que no estamos luchando 
+                                        solo contra una pandilla. Estamos luchando contra el sistema mismo."
+                                    </p>
+                                    <p style="font-style: italic; color: #555; margin-top: 20px;">
+                                        Esa noche, no puedes dormir. Las palabras del Capitán resuenan en tu mente. <em>"Necesitamos 
+                                        más evidencia..."</em> ¿Qué tal si esa evidencia está justo bajo sus narices? En los archivos 
+                                        del departamento...
+                                    </p>
+                                </div>
+                                <p style="font-style: italic; text-align: center; color: #555;">
+                                    Una idea peligrosa comienza a formarse. Una misión que nadie puede saber...<br>
+                                    Miguel estaría orgulloso de tu valentía, Hugo. Pero también preocupado por tu seguridad.
+                                </p>
+                            </div>
+                            <div style="margin-top: 25px;">
+                                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                                    <strong>Estadísticas del Caso:</strong><br>
+                                    🔍 Pistas encontradas: ${gameState.cluesFound.length}/9<br>
+                                    👥 Sospechosos interrogados: ${gameState.suspectsQuestioned.length}/2<br>
+                                    ⏱️ Tiempo usado: ${formatTime(1500 - gameState.timeRemaining)}
+                                </div>
+                                <button class="button" onclick="renderMission4Unlock()">➡️ Continuar</button>
+                                <button class="button button-secondary" onclick="location.reload()">🏠 Volver al Menú Principal</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                let errorExplanation = '';
+                if (!conclusionCorrect && !killerCorrect) {
+                    errorExplanation = `
+                        <p style="margin-bottom: 15px;"><strong>Fallaste en ambas preguntas:</strong></p>
+                        <div style="background: #f8d7da; padding: 15px; border-left: 4px solid #dc3545; border-radius: 5px; margin-bottom: 15px;">
+                            <strong>Tu conclusión sobre lo que pasó:</strong> ${conclusion.text}<br><br>
+                            <strong>Error:</strong> ${conclusion.explanation}
+                        </div>
+                        <div style="background: #f8d7da; padding: 15px; border-left: 4px solid #dc3545; border-radius: 5px; margin-bottom: 15px;">
+                            <strong>Tu identificación del responsable:</strong> ${killer.name}<br><br>
+                            <strong>Error:</strong> ${killer.explanation}
+                        </div>
+                    `;
+                } else if (!conclusionCorrect) {
+                    errorExplanation = `
+                        <p style="margin-bottom: 15px;"><strong>Identificaste correctamente al responsable, pero tu conclusión sobre lo que pasó es incorrecta:</strong></p>
+                        <div style="background: #f8d7da; padding: 15px; border-left: 4px solid #dc3545; border-radius: 5px; margin-bottom: 15px;">
+                            <strong>Tu conclusión:</strong> ${conclusion.text}<br><br>
+                            <strong>Error:</strong> ${conclusion.explanation}
+                        </div>
+                    `;
+                } else {
+                    errorExplanation = `
+                        <p style="margin-bottom: 15px;"><strong>Tu conclusión sobre lo que pasó es correcta, pero identificaste al responsable equivocado:</strong></p>
+                        <div style="background: #f8d7da; padding: 15px; border-left: 4px solid #dc3545; border-radius: 5px; margin-bottom: 15px;">
+                            <strong>Tu respuesta:</strong> ${killer.name}<br><br>
+                            <strong>Error:</strong> ${killer.explanation}
+                        </div>
+                    `;
+                }
+
+                const correctConclusion = currentMissionData.conclusions.find(c => c.correct);
+                const correctKiller = currentMissionData.killerOptions.find(k => k.correct);
+
+                screen.innerHTML = `
+                    <div class="end-screen">
+                        <div class="result-box result-failure">
+                            <h1 style="color: #dc3545; margin-bottom: 20px;">❌ HAS SIDO DESPEDIDO</h1>
+                            <div style="font-size: 5em; margin: 20px 0;">😞</div>
+                            <h2 style="margin-bottom: 15px;">Fallaste, Hugo L.</h2>
+                            <div class="story-text" style="text-align: left;">
+                                ${errorExplanation}
+                                <hr style="margin: 20px 0; border: none; border-top: 2px solid #e0e0e0;">
+                                <h3 style="color: #e67e22; margin-bottom: 15px;">Las Respuestas Correctas:</h3>
+                                <div style="background: #d4edda; padding: 15px; border-left: 4px solid #28a745; border-radius: 5px; margin-bottom: 15px;">
+                                    <strong>¿Qué pasó?</strong><br>
+                                    ${correctConclusion.text}<br><br>
+                                    ${correctConclusion.explanation}
+                                </div>
+                                <div style="background: #d4edda; padding: 15px; border-left: 4px solid #28a745; border-radius: 5px; margin-bottom: 20px;">
+                                    <strong>¿Quién es el responsable?</strong><br>
+                                    ${correctKiller.name}<br><br>
+                                    ${correctKiller.explanation}
+                                </div>
+                                <hr style="margin: 20px 0; border: none; border-top: 2px solid #e0e0e0;">
+                                <p style="font-style: italic; color: #555; margin-bottom: 15px;">
+                                    El Capitán Rodríguez te mira con tristeza. "Hugo, sé lo que Miguel significaba para ti. 
+                                    Sé que querías limpiar estas calles en su memoria. Pero este error... es demasiado grande."
+                                </p>
+                                <p style="font-style: italic; color: #555;">
+                                    "Tu placa y tu arma. Lo siento, detective. Estás fuera del cuerpo."
+                                </p>
+                            </div>
+                            <div style="margin-top: 25px;">
+                                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                                    <strong>Estadísticas del Caso:</strong><br>
+                                    🔍 Pistas encontradas: ${gameState.cluesFound.length}/9<br>
+                                    👥 Sospechosos interrogados: ${gameState.suspectsQuestioned.length}/2<br>
+                                    ⏱️ Tiempo usado: ${formatTime(1500 - gameState.timeRemaining)}
+                                </div>
+                                <button class="button" onclick="location.reload()">🔄 Volver al Menú</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function makeAccusation(suspectId) {
+            stopTimer();
+            const suspect = currentMissionData.suspects.find(s => s.id === suspectId);
+            const correct = suspect.guilty;
+
+            const screen = document.getElementById('game-screen');
+            if (correct) {
+                gameState.mission1Completed = true;
+                saveProgress();
+                screen.innerHTML = `
+                    <div class="end-screen">
+                        <div class="result-box result-success">
+                            <h1 style="color: #28a745; margin-bottom: 20px;">🎉 ¡CASO RESUELTO!</h1>
+                            <div style="font-size: 5em; margin: 20px 0;">${suspect.avatar}</div>
+                            <h2 style="margin-bottom: 15px;">${suspect.name}</h2>
+                            <p style="font-size: 1.2em; margin-bottom: 20px;">
+                                <strong>¡Has identificado correctamente al asesino!</strong>
+                            </p>
+                            <div class="story-text" style="text-align: left;">
+                                <h3 style="color: #e67e22; margin-bottom: 10px;">La Confesión:</h3>
+                                <p style="margin-bottom: 15px;">
+                                    "${suspect.name} confiesa entre lágrimas: No quería matarlo... pero Los Verdes me obligaron. 
+                                    Dijeron que el vagabundo había visto algo que no debía, una operación importante. 
+                                    Me amenazaron: o lo eliminaba yo, o me eliminaban a mí y a mi familia."
+                                </p>
+                                <p style="margin-bottom: 15px;">
+                                    "Me dieron el tubo de metal, me dijeron dónde encontrarlo y qué hacer. Lo hice parecer un robo 
+                                    común... tomé su cartera, desgarré su ropa. Pero el símbolo en la pared... esa fue su forma 
+                                    de marcar territorio, de enviar un mensaje."
+                                </p>
+                                <p style="margin-bottom: 15px; padding: 15px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 5px;">
+                                    <strong>⚠️ NUEVA INFORMACIÓN REVELADA:</strong><br><br>
+                                    La investigación revela que <strong>"Los Verdes"</strong> es una organización criminal sofisticada 
+                                    que opera en las sombras. Su líder permanece desconocido, usando intermediarios para mantener 
+                                    su identidad en secreto. Marco era solo un peón más en su red de operaciones.
+                                </p>
+                                <p style="margin-bottom: 15px;">
+                                    <strong>Has resuelto el asesinato, pero la historia de Los Verdes apenas comienza...</strong>
+                                </p>
+                                <hr style="margin: 25px 0; border: none; border-top: 2px solid #e0e0e0;">
+                                <p style="font-style: italic; color: #555;">
+                                    Mientras completas el papeleo, tu teléfono suena. Es el jefe...
+                                </p>
+                            </div>
+                            <div style="margin-top: 25px;">
+                                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                                    <strong>Estadísticas del Caso:</strong><br>
+                                    🔍 Pistas encontradas: ${gameState.cluesFound.length}/9<br>
+                                    👥 Sospechosos interrogados: ${gameState.suspectsQuestioned.length}/4<br>
+                                    ⏱️ Tiempo usado: ${formatTime(1500 - gameState.timeRemaining)}
+                                </div>
+                                <button class="button" onclick="renderBossDialogue()">📞 Contestar Llamada</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                screen.innerHTML = `
+                    <div class="end-screen">
+                        <div class="result-box result-failure">
+                            <h1 style="color: #dc3545; margin-bottom: 20px;">❌ ACUSACIÓN INCORRECTA</h1>
+                            <div style="font-size: 5em; margin: 20px 0;">${suspect.avatar}</div>
+                            <h2 style="margin-bottom: 15px;">${suspect.name} es inocente</h2>
+                            <div class="story-text" style="text-align: left;">
+                                <p style="margin-bottom: 15px;">
+                                    Has acusado a la persona equivocada. ${suspect.name} tenía una coartada sólida y no estaba 
+                                    involucrado en el asesinato. Mientras tanto, el verdadero asesino ha logrado escapar.
+                                </p>
+                                <p style="margin-bottom: 15px;">
+                                    <strong style="color: #e67e22;">El verdadero culpable era: Marco "El Flaco" Silva (Traficante)</strong>
+                                </p>
+                                <p>
+                                    Las pistas clave eran: el arma homicida con huellas dactilares, el símbolo verde de Los Verdes 
+                                    (la banda que le ordenó el asesinato), y el testimonio del testigo que lo vio huyendo con sudadera verde.
+                                </p>
+                            </div>
+                            <div style="margin-top: 25px;">
+                                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                                    <strong>Estadísticas del Caso:</strong><br>
+                                    🔍 Pistas encontradas: ${gameState.cluesFound.length}/9<br>
+                                    👥 Sospechosos interrogados: ${gameState.suspectsQuestioned.length}/4
+                                </div>
+                                <button class="button" onclick="location.reload()">🔄 Intentar de Nuevo</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function renderNotebook() {
+            if (gameState.cluesFound.length === 0) return '';
+
+            const cluesHTML = gameState.cluesFound.map(clueId => {
+                const clue = currentMissionData.clues[clueId];
+                return `<div class="notebook-item">📌 ${clue.name}: ${clue.description}</div>`;
+            }).join('');
+
+            return `
+                <div class="notebook">
+                    <h3>📓 Notas del Detective</h3>
+                    ${cluesHTML}
+                </div>
+            `;
+        }
+
+        function renderBossDialogue() {
+            const screen = document.getElementById('game-screen');
+            const nextMission = gameState.currentMission === 1 ? 2 : 3;
+            
+            if (nextMission === 2) {
+                screen.innerHTML = `
+                    <div class="end-screen">
+                        <div class="story-text" style="max-width: 700px; margin: 0 auto;">
+                            <h2 style="color: #e67e22; margin-bottom: 20px; text-align: center;">📞 Llamada del Jefe</h2>
+                            
+                            <div style="background: white; padding: 25px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                                <div style="display: flex; align-items: center; margin-bottom: 20px;">
+                                    <div style="font-size: 4em; margin-right: 20px;">👔</div>
+                                    <div>
+                                        <strong style="font-size: 1.2em;">Capitán Rodríguez</strong>
+                                        <p style="color: #7f8c8d; font-size: 0.9em; margin-top: 5px;">Jefe de Homicidios</p>
+                                    </div>
+                                </div>
+                                
+                                <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 4px solid #3498db; margin-bottom: 15px;">
+                                    <p style="margin-bottom: 15px; font-style: italic;">
+                                        "Hugo, excelente trabajo con el caso del callejón. Marco Silva está cantando como un canario. 
+                                        Aunque... esto de Los Verdes me preocupa. Es más grande de lo que pensábamos."
+                                    </p>
+                                    <p style="margin-bottom: 15px; font-style: italic;">
+                                        "Sé que esto es personal para ti. Miguel... tu hijo... sé que perdiste mucho por culpa de 
+                                        estas pandillas. Pero necesito que mantengas la cabeza fría."
+                                    </p>
+                                    <p style="margin-bottom: 15px; font-style: italic;">
+                                        "Tenemos otro caso y no hay tiempo que perder."
+                                    </p>
+                                </div>
+                                
+                                <div style="background: #fff3cd; padding: 20px; border-radius: 8px; border-left: 4px solid #ffc107; margin-bottom: 15px;">
+                                    <h3 style="color: #e67e22; margin-bottom: 15px;">📋 Nueva Misión Asignada</h3>
+                                    <p style="margin-bottom: 15px; font-style: italic;">
+                                        "La familia Ramírez. Cuatro personas. Desaparecieron sin dejar rastro hace 24 horas. 
+                                        Entramos a la casa y... nada. No hay violencia, no hay robo. Simplemente se esfumaron."
+                                    </p>
+                                    <p style="margin-bottom: 15px; font-style: italic;">
+                                        "La casa está intacta. La cena todavía estaba en la mesa. El televisor encendido. 
+                                        Es como si hubieran salido a comprar leche y nunca regresaron."
+                                    </p>
+                                    <p style="font-style: italic; color: #dc3545; font-weight: bold;">
+                                        "Hugo, este caso es delicado. No hay sospechosos, solo evidencia. Necesito que llegues 
+                                        a la conclusión correcta. El alcalde está presionando y... bueno, ya sabes cómo es esto. 
+                                        Si te equivocas en este, no podré protegerte. Es tu placa la que está en juego."
+                                    </p>
+                                </div>
+                                
+                                <div style="text-align: center; padding: 15px; background: #ecf0f1; border-radius: 8px;">
+                                    <p style="font-style: italic; margin-bottom: 0;">
+                                        "Confío en ti, detective. Ve a la escena del crimen y averigua qué demonios pasó con los Ramírez."
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div style="text-align: center;">
+                                <button class="button" onclick="startMission2()">🚔 Ir a la Escena del Crimen</button>
+                                <button class="button button-secondary" onclick="location.reload()">🏠 Volver al Menú Principal</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                // Diálogo para transición a misión 3
+                screen.innerHTML = `
+                    <div class="end-screen">
+                        <div class="story-text" style="max-width: 700px; margin: 0 auto;">
+                            <h2 style="color: #e67e22; margin-bottom: 20px; text-align: center;">📞 Llamada Urgente - 3:30 AM</h2>
+                            
+                            <div style="background: white; padding: 25px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                                <div style="display: flex; align-items: center; margin-bottom: 20px;">
+                                    <div style="font-size: 4em; margin-right: 20px;">👔</div>
+                                    <div>
+                                        <strong style="font-size: 1.2em;">Capitán Rodríguez</strong>
+                                        <p style="color: #7f8c8d; font-size: 0.9em; margin-top: 5px;">Jefe de Homicidios</p>
+                                    </div>
+                                </div>
+                                
+                                <div style="background: #f8d7da; padding: 20px; border-radius: 8px; border-left: 4px solid #dc3545; margin-bottom: 15px;">
+                                    <p style="margin-bottom: 15px; font-style: italic; font-weight: bold;">
+                                        "Hugo, despierta. Tenemos un problema SERIO. El informante... está muerto."
+                                    </p>
+                                    <p style="margin-bottom: 15px; font-style: italic;">
+                                        "Carlos Vega. Iba a testificar mañana contra Los Verdes. Lo teníamos en una casa de seguridad. 
+                                        Ubicación clasificada. Solo lo sabíamos cinco personas de máxima confianza."
+                                    </p>
+                                    <p style="margin-bottom: 15px; font-style: italic;">
+                                        "Y ahora está muerto. Un disparo profesional. Las cámaras 'fallaron'. Sin testigos. 
+                                        Hugo... alguien filtró la información."
+                                    </p>
+                                </div>
+                                
+                                <div style="background: #d4edda; padding: 20px; border-radius: 8px; border-left: 4px solid #28a745; margin-bottom: 15px;">
+                                    <p style="margin-bottom: 15px; font-style: italic;">
+                                        "Sé que perdiste a Miguel por estas pandillas. Sé lo que Los Verdes le han quitado a esta ciudad. 
+                                        Por eso confío en ti para este caso. Pero Hugo..."
+                                    </p>
+                                    <p style="margin-bottom: 15px; font-style: italic; font-weight: bold; color: #dc3545;">
+                                        "Ten mucho cuidado. Si alguien vendió al informante desde dentro... no sabemos quién más 
+                                        está comprometido. Confía en las pistas, no en las personas. Ni siquiera en mí."
+                                    </p>
+                                </div>
+                                
+                                <div style="background: #fff3cd; padding: 20px; border-radius: 8px; border-left: 4px solid #ffc107; margin-bottom: 15px;">
+                                    <p style="margin-bottom: 15px; font-style: italic;">
+                                        "Solo tengo dos sospechosos disponibles para que interrogues. Las pistas en la escena son 
+                                        escasas. Necesito que descubras QUÉ pasó exactamente y QUIÉN es el responsable."
+                                    </p>
+                                    <p style="font-style: italic; color: #dc3545; font-weight: bold;">
+                                        "Si fallas en esto, Hugo... no solo perderás tu placa. Los Verdes ganarán. Y todo por lo 
+                                        que has luchado desde que perdiste a Miguel habrá sido en vano."
+                                    </p>
+                                </div>
+                                
+                                <div style="text-align: center; padding: 15px; background: #ecf0f1; border-radius: 8px;">
+                                    <p style="font-style: italic; margin-bottom: 0;">
+                                        "Encuentra la verdad, detective. Antes de que sea demasiado tarde."
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div style="text-align: center;">
+                                <button class="button" onclick="startMission3()">🚔 Ir a la Casa de Seguridad</button>
+                                <button class="button button-secondary" onclick="location.reload()">🏠 Volver al Menú Principal</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function startMission1() {
+            gameState.currentMission = 1;
+            gameState.cluesFound = [];
+            gameState.suspectsQuestioned = [];
+            gameState.timeRemaining = 1500;
+            currentMissionData = gameData.mission1;
+            renderIntro();
+        }
+
+        function startMission2() {
+            gameState.currentMission = 2;
+            gameState.cluesFound = [];
+            gameState.suspectsQuestioned = [];
+            gameState.timeRemaining = 1500;
+            currentMissionData = gameData.mission2;
+            renderIntroMission2();
+        }
+
+        function startMission3() {
+            gameState.currentMission = 3;
+            gameState.cluesFound = [];
+            gameState.suspectsQuestioned = [];
+            gameState.timeRemaining = 1500;
+            currentMissionData = gameData.mission3;
+            renderIntroMission3();
+        }
+
+        function startMission4() {
+            gameState.currentMission = 4;
+            gameState.filesReviewed = [];
+            gameState.suspicionLevel = 0;
+            gameState.timeRemaining = 900; // 15 minutos para esta misión
+            currentMissionData = gameData.mission4;
+            renderIntroMission4();
+        }
+
+        function startMission5() {
+            gameState.currentMission = 5;
+            gameState.cluesFound = [];
+            gameState.suspectsQuestioned = [];
+            gameState.timeRemaining = 1500;
+            currentMissionData = gameData.mission5;
+            renderIntroMission5();
+        }
+
+        function startGame() {
+            gameState.timerInterval = setInterval(updateTimer, 1000);
+            renderLocationSelect();
+        }
+
+        function startGameMission2() {
+            gameState.timerInterval = setInterval(updateTimer, 1000);
+            renderLocationSelect();
+        }
+
+        function startGameMission3() {
+            gameState.timerInterval = setInterval(updateTimer, 1000);
+            renderLocationSelect();
+        }
+
+        function startGameMission4() {
+            gameState.timerInterval = setInterval(updateTimer, 1000);
+            renderArchiveRoom();
+        }
+
+        function startGameMission5() {
+            gameState.timerInterval = setInterval(updateTimer, 1000);
+            renderLocationSelect();
+        }
+
+        function renderMission5Conclusions() {
+            const screen = document.getElementById('game-screen');
+            const conclusionsHTML = currentMissionData.conclusions.map(conclusion => {
+                return `
+                    <button class="question-btn" onclick="saveMission5WhatHappened('${conclusion.id}')" style="text-align: center; padding: 20px;">
+                        ${conclusion.text}
+                    </button>
+                `;
+            }).join('');
+
+            screen.innerHTML = `
+                <div class="end-screen">
+                    <div class="accusation-panel">
+                        <h2 style="color: #c0392b; margin-bottom: 15px;">🎯 Parte 1: ¿Qué pasó realmente con García?</h2>
+                        <p style="margin-bottom: 15px;">
+                            Has investigado la escena del crimen. Has revisado las pistas. Has interrogado a los sospechosos.
+                        </p>
+                        <p style="margin-bottom: 20px; color: #dc3545; font-weight: bold;">
+                            ⚠️ ADVERTENCIA: Debes acertar AMBAS preguntas. Si fallas cualquiera, serás despedido.
+                        </p>
+                        <h3 style="margin-bottom: 15px;">Primera Pregunta: ¿Qué pasó realmente con Eduardo García?</h3>
+                        ${conclusionsHTML}
+                    </div>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button class="button button-secondary" onclick="renderLocationSelect()">⬅️ Seguir Investigando</button>
+                    </div>
+                    ${renderNotebook()}
+                </div>
+            `;
+        }
+
+        let mission5WhatHappened = null;
+
+        function saveMission5WhatHappened(conclusionId) {
+            mission5WhatHappened = conclusionId;
+            renderMission5TargetSelect();
+        }
+
+        function renderMission5TargetSelect() {
+            const screen = document.getElementById('game-screen');
+            const targetsHTML = currentMissionData.targetQuestion.map(target => {
+                return `
+                    <button class="question-btn" onclick="makeMission5FinalAnswer('${target.id}')" style="text-align: center; padding: 20px;">
+                        ${target.text}
+                    </button>
+                `;
+            }).join('');
+
+            screen.innerHTML = `
+                <div class="end-screen">
+                    <div class="accusation-panel" style="background: #fff3cd;">
+                        <h2 style="color: #c0392b; margin-bottom: 15px;">🎯 Parte 2: ¿A quién iba a denunciar García?</h2>
+                        <p style="margin-bottom: 15px;">
+                            Has determinado lo que pasó. Ahora la pregunta más importante:
+                        </p>
+                        <p style="margin-bottom: 20px; color: #dc3545; font-weight: bold;">
+                            ⚠️ Esta decisión cambiará todo. Piensa cuidadosamente.
+                        </p>
+                        <h3 style="margin-bottom: 15px;">Segunda Pregunta: ¿Quién era el objetivo de la denuncia de García?</h3>
+                        ${targetsHTML}
+                    </div>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button class="button button-secondary" onclick="renderMission5Conclusions()">⬅️ Cambiar Primera Respuesta</button>
+                    </div>
+                    ${renderNotebook()}
+                </div>
+            `;
+        }
+
+        function makeMission5FinalAnswer(targetId) {
+            stopTimer();
+            const whatHappened = currentMissionData.conclusions.find(c => c.id === mission5WhatHappened);
+            const whoTarget = currentMissionData.targetQuestion.find(t => t.id === targetId);
+            
+            const whatCorrect = whatHappened.correct;
+            const whoCorrect = whoTarget.correct;
+            const bothCorrect = whatCorrect && whoCorrect;
+
+            const screen = document.getElementById('game-screen');
+            
+            if (bothCorrect) {
+                screen.innerHTML = `
+                    <div class="end-screen">
+                        <div class="result-box result-success">
+                            <h1 style="color: #28a745; margin-bottom: 20px;">✅ ¡HAS DESCUBIERTO LA VERDAD!</h1>
+                            <div style="font-size: 5em; margin: 20px 0;">🎯</div>
+                            <h2 style="margin-bottom: 15px;">La Corrupción Revelada</h2>
+                            
+                            <div class="story-text" style="text-align: left;">
+                                <h3 style="color: #c0392b; margin-bottom: 15px;">Tus Conclusiones:</h3>
+                                <div style="background: #d4edda; padding: 20px; border-left: 4px solid #28a745; border-radius: 5px; margin-bottom: 15px;">
+                                    <strong>¿Qué pasó?</strong><br>
+                                    ${whatHappened.text}<br><br>
+                                    ${whatHappened.explanation}
+                                </div>
+                                <div style="background: #d4edda; padding: 20px; border-left: 4px solid #28a745; border-radius: 5px; margin-bottom: 20px;">
+                                    <strong>¿A quién iba a denunciar?</strong><br>
+                                    ${whoTarget.text}<br><br>
+                                    ${whoTarget.explanation}
+                                </div>
+                                
+                                <hr style="margin: 25px 0; border: none; border-top: 2px solid #e0e0e0;">
+                                
+                                <div style="background: #2c3e50; color: white; padding: 25px; border-radius: 10px; margin-bottom: 20px;">
+                                    <h3 style="color: #e74c3c; margin-bottom: 15px; text-align: center;">💀 EL MOMENTO DE LA VERDAD</h3>
+                                    <p style="margin-bottom: 15px;">
+                                        Lo sabes. Tienes todas las pruebas. El Capitán Rodríguez no solo protege a Los Verdes... 
+                                        él mismo es parte de la corrupción. Casos archivados. Evidencias perdidas. Testigos muertos.
+                                    </p>
+                                    <p style="margin-bottom: 15px; font-style: italic;">
+                                        Eduardo García iba a exponerlo. Por eso fue asesinado. Por eso el caso se cerró en 24 horas. 
+                                        El asesino... fue ordenado por el mismo hombre que debía proteger a la ciudad.
+                                    </p>
+                                    <p style="margin-bottom: 15px; color: #e74c3c; font-weight: bold;">
+                                        Preparas tu informe. Compilas toda la evidencia. Los archivos de la Misión 4. El caso de García. 
+                                        El informante muerto. Todo conecta. Todo apunta al Capitán Rodríguez.
+                                    </p>
+                                    <p style="font-style: italic;">
+                                        Pero cuando llega el momento de presentarlo... dudas. Si lo acusas y no tienes suficiente, 
+                                        serás tú el siguiente. Si esperas... más gente morirá.
+                                    </p>
+                                </div>
+
+                                <div style="background: #fff3cd; padding: 25px; border-left: 4px solid #ffc107; border-radius: 5px; margin-bottom: 20px;">
+                                    <h3 style="color: #e67e22; margin-bottom: 10px;">El Peso de la Decisión</h3>
+                                    <p style="margin-bottom: 15px;">
+                                        Has llegado más lejos que nadie. Has descubierto la verdad que otros murieron intentando revelar. 
+                                        Miguel. Javier. García. El informante. Todos víctimas del mismo sistema corrupto.
+                                    </p>
+                                    <p style="margin-bottom: 15px; font-style: italic; color: #555;">
+                                        Miras la foto de Miguel en tu escritorio. Su sonrisa. Su futuro robado por las pandillas que 
+                                        tu propio jefe protege. Las lágrimas caen mientras escribes el último párrafo de tu informe.
+                                    </p>
+                                    <p style="font-weight: bold; color: #dc3545;">
+                                        "Por ti, hijo. Por todos. Esto termina ahora."
+                                    </p>
+                                </div>
+
+                                <p style="text-align: center; font-size: 1.3em; font-style: italic; color: #2c3e50; margin: 30px 0;">
+                                    <strong>CONTINUARÁ...</strong>
+                                </p>
+
+                                <p style="text-align: center; font-style: italic; color: #555;">
+                                    Has completado todas las misiones actuales de "La Sombra de Jalejos".<br>
+                                    La historia de Hugo L. y su lucha contra la corrupción continuará...
+                                </p>
+                            </div>
+
+                            <div style="margin-top: 25px;">
+                                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                                    <strong>Estadísticas del Caso:</strong><br>
+                                    🔍 Pistas encontradas: ${gameState.cluesFound.length}/12<br>
+                                    👥 Sospechosos interrogados: ${gameState.suspectsQuestioned.length}/3<br>
+                                    ⏱️ Tiempo usado: ${formatTime(1500 - gameState.timeRemaining)}
+                                </div>
+                                <button class="button" onclick="location.reload()">🏠 Volver al Menú Principal</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                // Failed - similar to mission 3 failure screen
+                let errorExplanation = '';
+                if (!whatCorrect && !whoCorrect) {
+                    errorExplanation = `
+                        <p style="margin-bottom: 15px;"><strong>Fallaste en ambas preguntas:</strong></p>
+                        <div style="background: #f8d7da; padding: 15px; border-left: 4px solid #dc3545; border-radius: 5px; margin-bottom: 15px;">
+                            <strong>Tu conclusión sobre lo que pasó:</strong> ${whatHappened.text}<br><br>
+                            <strong>Error:</strong> ${whatHappened.explanation}
+                        </div>
+                        <div style="background: #f8d7da; padding: 15px; border-left: 4px solid #dc3545; border-radius: 5px; margin-bottom: 15px;">
+                            <strong>Tu identificación del objetivo:</strong> ${whoTarget.text}<br><br>
+                            <strong>Error:</strong> ${whoTarget.explanation}
+                        </div>
+                    `;
+                } else if (!whatCorrect) {
+                    errorExplanation = `
+                        <p style="margin-bottom: 15px;"><strong>Identificaste correctamente el objetivo, pero tu conclusión sobre lo que pasó es incorrecta:</strong></p>
+                        <div style="background: #f8d7da; padding: 15px; border-left: 4px solid #dc3545; border-radius: 5px; margin-bottom: 15px;">
+                            <strong>Tu conclusión:</strong> ${whatHappened.text}<br><br>
+                            <strong>Error:</strong> ${whatHappened.explanation}
+                        </div>
+                    `;
+                } else {
+                    errorExplanation = `
+                        <p style="margin-bottom: 15px;"><strong>Tu conclusión sobre lo que pasó es correcta, pero identificaste al objetivo equivocado:</strong></p>
+                        <div style="background: #f8d7da; padding: 15px; border-left: 4px solid #dc3545; border-radius: 5px; margin-bottom: 15px;">
+                            <strong>Tu respuesta:</strong> ${whoTarget.text}<br><br>
+                            <strong>Error:</strong> ${whoTarget.explanation}
+                        </div>
+                    `;
+                }
+
+                const correctWhat = currentMissionData.conclusions.find(c => c.correct);
+                const correctWho = currentMissionData.targetQuestion.find(t => t.correct);
+
+                screen.innerHTML = `
+                    <div class="end-screen">
+                        <div class="result-box result-failure">
+                            <h1 style="color: #dc3545; margin-bottom: 20px;">❌ HAS SIDO DESPEDIDO</h1>
+                            <div style="font-size: 5em; margin: 20px 0;">😞</div>
+                            <h2 style="margin-bottom: 15px;">Fallaste, Hugo L.</h2>
+                            
+                            <div class="story-text" style="text-align: left;">
+                                ${errorExplanation}
+                                
+                                <hr style="margin: 20px 0; border: none; border-top: 2px solid #e0e0e0;">
+                                
+                                <h3 style="color: #e67e22; margin-bottom: 15px;">Las Respuestas Correctas:</h3>
+                                <div style="background: #d4edda; padding: 15px; border-left: 4px solid #28a745; border-radius: 5px; margin-bottom: 15px;">
+                                    <strong>¿Qué pasó?</strong><br>
+                                    ${correctWhat.text}<br><br>
+                                    ${correctWhat.explanation}
+                                </div>
+                                <div style="background: #d4edda; padding: 15px; border-left: 4px solid #28a745; border-radius: 5px; margin-bottom: 20px;">
+                                    <strong>¿A quién iba a denunciar?</strong><br>
+                                    ${correctWho.text}<br><br>
+                                    ${correctWho.explanation}
+                                </div>
+                                
+                                <hr style="margin: 20px 0; border: none; border-top: 2px solid #e0e0e0;">
+                                
+                                <p style="font-style: italic; color: #555; margin-bottom: 15px;">
+                                    El Capitán Rodríguez revisa tu informe con expresión decepcionada.
+                                </p>
+                                <p style="font-style: italic; color: #555;">
+                                    "Hugo... este error es imperdonable. Tu placa. Tu arma. Estás fuera del cuerpo."
+                                </p>
+                                <p style="font-style: italic; color: #dc3545; font-weight: bold; margin-top: 15px;">
+                                    La corrupción continúa. Los Verdes siguen operando. Miguel nunca será vengado.
+                                </p>
+                            </div>
+
+                            <div style="margin-top: 25px;">
+                                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                                    <strong>Estadísticas del Caso:</strong><br>
+                                    🔍 Pistas encontradas: ${gameState.cluesFound.length}/12<br>
+                                    👥 Sospechosos interrogados: ${gameState.suspectsQuestioned.length}/3<br>
+                                    ⏱️ Tiempo usado: ${formatTime(1500 - gameState.timeRemaining)}
+                                </div>
+                                <button class="button" onclick="location.reload()">🔄 Volver al Menú</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function renderArchiveRoom() {
+            const screen = document.getElementById('game-screen');
+            const suspicionColor = gameState.suspicionLevel < 5 ? '#28a745' : (gameState.suspicionLevel < 8 ? '#ffc107' : '#dc3545');
+            
+            const archivesHTML = currentMissionData.archives.map(archive => {
+                const reviewed = gameState.filesReviewed.includes(archive.id);
+                const riskColor = archive.suspicionRisk === 1 ? '#28a745' : (archive.suspicionRisk === 2 ? '#ffc107' : '#dc3545');
+                
+                return `
+                    <div class="suspect-card ${reviewed ? 'questioned' : ''}" onclick="${!reviewed && gameState.suspicionLevel < 10 ? `reviewArchive('${archive.id}')` : ''}" 
+                         style="${reviewed ? 'opacity: 0.7;' : ''} ${gameState.suspicionLevel >= 10 ? 'cursor: not-allowed; opacity: 0.5;' : ''}">
+                        <div style="font-size: 2em; margin-bottom: 10px;">📁</div>
+                        <div class="suspect-name" style="font-size: 1em;">${archive.name}</div>
+                        <div style="margin-top: 10px;">
+                            <span style="background: ${riskColor}; color: white; padding: 5px 10px; border-radius: 15px; font-size: 0.8em;">
+                                ${archive.suspicionRisk === 1 ? 'Riesgo Bajo' : (archive.suspicionRisk === 2 ? 'Riesgo Medio' : 'Riesgo Alto')}
+                            </span>
+                        </div>
+                        ${reviewed ? '<div class="badge" style="margin-top: 10px;">Revisado</div>' : ''}
+                    </div>
+                `;
+            }).join('');
+
+            const importantFilesReviewed = gameState.filesReviewed.filter(id => {
+                const file = currentMissionData.archives.find(a => a.id === id);
+                return file && file.important;
+            }).length;
+
+            screen.innerHTML = `
+                <div class="interrogation-screen">
+                    <div class="story-text">
+                        <h2 style="color: #8e44ad; margin-bottom: 10px;">🔦 Sala de Archivos - Revisión Nocturna</h2>
+                        <p>Selecciona los archivos a revisar. Ten cuidado: algunos levantarán más sospecha que otros.</p>
+                    </div>
+
+                    <div style="background: #2c3e50; color: white; padding: 20px; border-radius: 10px; margin: 20px 0;">
+                        <div style="display: flex; justify-content: space-around; text-align: center;">
+                            <div>
+                                <div style="font-size: 0.9em; opacity: 0.8;">Nivel de Sospecha</div>
+                                <div style="font-size: 2em; font-weight: bold; color: ${suspicionColor};">${gameState.suspicionLevel}/10</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.9em; opacity: 0.8;">Archivos Revisados</div>
+                                <div style="font-size: 2em; font-weight: bold;">${gameState.filesReviewed.length}/8</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.9em; opacity: 0.8;">Casos Importantes</div>
+                                <div style="font-size: 2em; font-weight: bold; color: #e67e22;">${importantFilesReviewed}/4</div>
+                            </div>
+                        </div>
+                        ${gameState.suspicionLevel >= 10 ? '<div style="margin-top: 15px; text-align: center; color: #e74c3c; font-weight: bold;">⚠️ NIVEL DE SOSPECHA CRÍTICO - NO PUEDES REVISAR MÁS ARCHIVOS</div>' : ''}
+                    </div>
+
+                    <div class="suspect-grid">
+                        ${archivesHTML}
+                    </div>
+
+                    <div style="text-align: center; margin-top: 20px;">
+                        ${importantFilesReviewed >= 3 ? '<button class="button" onclick="renderMission4Conclusions()">🎯 Analizar Patrones y Concluir</button>' : 
+                          '<p style="color: #7f8c8d; font-style: italic;">Necesitas revisar al menos 3 casos importantes para sacar conclusiones</p>'}
+                    </div>
+
+                    ${renderMission4Notes()}
+                </div>
+            `;
+        }
+
+        function reviewArchive(archiveId) {
+            const archive = currentMissionData.archives.find(a => a.id === archiveId);
+            if (!archive || gameState.filesReviewed.includes(archiveId)) return;
+
+            gameState.filesReviewed.push(archiveId);
+            gameState.suspicionLevel += archive.suspicionRisk;
+
+            const screen = document.getElementById('game-screen');
+            screen.innerHTML = `
+                <div class="interrogation-screen">
+                    <div class="story-text">
+                        <h2 style="color: #8e44ad;">📄 ${archive.name}</h2>
+                        <p style="font-size: 0.9em; color: #7f8c8d;">Firmado por: ${archive.signedBy}</p>
+                    </div>
+
+                    <div class="question-box">
+                        <div style="background: #ecf0f1; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                            <h3 style="margin-bottom: 15px;">Contenido del Expediente:</h3>
+                            <p style="line-height: 1.8;">${archive.content}</p>
+                            ${archive.inconsistency ? `
+                                <div style="margin-top: 20px; padding: 15px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 5px;">
+                                    <strong>⚠️ Inconsistencia Detectada:</strong><br>
+                                    ${archive.inconsistency}
+                                </div>
+                            ` : ''}
+                        </div>
+
+                        <div style="background: ${archive.suspicionRisk === 3 ? '#f8d7da' : '#d4edda'}; padding: 15px; border-radius: 8px; text-align: center;">
+                            <strong>Sospecha generada: +${archive.suspicionRisk}</strong>
+                            <p style="margin-top: 10px; font-size: 0.9em;">
+                                ${archive.suspicionRisk === 1 ? 'Este archivo no llamará mucho la atención.' : 
+                                  archive.suspicionRisk === 2 ? 'Este archivo podría levantar alguna sospecha.' : 
+                                  '¡Este archivo es altamente sensible! Has aumentado mucho el riesgo.'}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button class="button button-secondary" onclick="renderArchiveRoom()">⬅️ Volver a los Archivos</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderMission4Notes() {
+            const importantFiles = gameState.filesReviewed.filter(id => {
+                const file = currentMissionData.archives.find(a => a.id === id);
+                return file && file.important;
+            });
+
+            if (importantFiles.length === 0) return '';
+
+            const notesHTML = importantFiles.map(fileId => {
+                const file = currentMissionData.archives.find(a => a.id === fileId);
+                return `
+                    <div class="notebook-item">
+                        📌 <strong>${file.name}</strong><br>
+                        Firmado por: ${file.signedBy}<br>
+                        ${file.inconsistency ? `<em style="color: #e67e22;">Inconsistencia: ${file.inconsistency}</em>` : ''}
+                    </div>
+                `;
+            }).join('');
+
+            return `
+                <div class="notebook">
+                    <h3>📓 Notas de Hugo - Casos Sospechosos</h3>
+                    ${notesHTML}
+                </div>
+            `;
+        }
+
+        function updateTimer() {
+            gameState.timeRemaining--;
+            const timeDisplay = document.getElementById('time-remaining');
+            if (timeDisplay) {
+                timeDisplay.textContent = formatTime(gameState.timeRemaining);
+                if (gameState.timeRemaining <= 60) {
+                    timeDisplay.style.color = '#dc3545';
+                }
+            }
+
+            if (gameState.timeRemaining <= 0) {
+                stopTimer();
+                gameOver();
+            }
+        }
+
+        function stopTimer() {
+            if (gameState.timerInterval) {
+                clearInterval(gameState.timerInterval);
+            }
+        }
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function updateStats() {
+            const totalClues = gameState.currentMission === 1 ? 9 : (gameState.currentMission === 2 ? 12 : 9);
+            const totalSuspects = gameState.currentMission === 1 ? 4 : (gameState.currentMission === 2 ? 0 : 2);
+            
+            if (gameState.currentMission === 4) {
+                // Mission 4 doesn't use standard stats
+                return;
+            }
+            
+            document.getElementById('clues-count').textContent = `${gameState.cluesFound.length}/${totalClues}`;
+            if (totalSuspects > 0) {
+                document.getElementById('suspects-count').textContent = `${gameState.suspectsQuestioned.length}/${totalSuspects}`;
+            } else {
+                document.getElementById('suspects-count').textContent = 'N/A';
+            }
+        }
+
+        function renderMission4Conclusions() {
+            const screen = document.getElementById('game-screen');
+            const conclusionsHTML = currentMissionData.conclusions.map(conclusion => {
+                return `
+                    <button class="question-btn" onclick="saveMission4Conclusion('${conclusion.id}')" style="text-align: center; padding: 20px;">
+                        ${conclusion.text}
+                    </button>
+                `;
+            }).join('');
+
+            screen.innerHTML = `
+                <div class="end-screen">
+                    <div class="accusation-panel">
+                        <h2 style="color: #8e44ad; margin-bottom: 15px;">🔍 Análisis de Patrones</h2>
+                        <p style="margin-bottom: 15px;">
+                            Has revisado los archivos. Has visto las inconsistencias. Ahora debes llegar a una conclusión.
+                        </p>
+                        <p style="margin-bottom: 20px; color: #555; font-style: italic;">
+                            Recuerda: todos los casos importantes archivados relacionados con Los Verdes fueron firmados por la misma persona...
+                        </p>
+                        <h3 style="margin-bottom: 15px;">¿Cuál es tu conclusión sobre las inconsistencias?</h3>
+                        ${conclusionsHTML}
+                    </div>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button class="button button-secondary" onclick="renderArchiveRoom()">⬅️ Revisar Más Archivos</button>
+                    </div>
+                    ${renderMission4Notes()}
+                </div>
+            `;
+        }
+
+        let mission4SelectedConclusion = null;
+
+        function saveMission4Conclusion(conclusionId) {
+            mission4SelectedConclusion = conclusionId;
+            renderMission4Discovery();
+        }
+
+        function renderMission4Discovery() {
+            const screen = document.getElementById('game-screen');
+            screen.innerHTML = `
+                <div class="end-screen">
+                    <div class="story-text" style="max-width: 700px; margin: 0 auto;">
+                        <h2 style="color: #dc3545; margin-bottom: 20px; text-align: center;">⚠️ ¡DESCUBIERTO!</h2>
+                        
+                        <div style="background: #2c3e50; color: white; padding: 25px; border-radius: 10px; margin-bottom: 20px;">
+                            <p style="margin-bottom: 15px; font-style: italic;">
+                                Mientras guardas el último archivo, escuchas pasos rápidos. Un guardia de seguridad entra abruptamente:
+                            </p>
+                            <p style="margin-bottom: 15px; font-style: italic; color: #e74c3c; font-weight: bold;">
+                                "¡Oye! ¿Qué haces aquí a estas horas? Esta área está restringida por la noche."
+                            </p>
+                            <p style="margin-bottom: 15px; font-style: italic;">
+                                Logras salir rápidamente, pero al día siguiente...
+                            </p>
+                        </div>
+
+                        <div style="background: white; padding: 25px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                            <div style="display: flex; align-items: center; margin-bottom: 20px;">
+                                <div style="font-size: 4em; margin-right: 20px;">👔</div>
+                                <div>
+                                    <strong style="font-size: 1.2em;">Capitán Rodríguez</strong>
+                                    <p style="color: #7f8c8d; font-size: 0.9em; margin-top: 5px;">Oficina - 8:00 AM</p>
+                                </div>
+                            </div>
+                            
+                            <div style="background: #f8d7da; padding: 20px; border-radius: 8px; border-left: 4px solid #dc3545; margin-bottom: 15px;">
+                                <p style="margin-bottom: 15px; font-style: italic;">
+                                    "Hugo, tenemos un problema. Alguien estuvo revisando archivos clasificados anoche en la sala del sótano. 
+                                    El sistema de seguridad registró actividad no autorizada."
+                                </p>
+                                <p style="margin-bottom: 15px; font-style: italic;">
+                                    "Los guardias vieron a alguien, pero no pudieron identificarlo claramente. Sin embargo... 
+                                    solo dos personas tenían acceso a esa área anoche: tú y el Detective Javier Martínez."
+                                </p>
+                                <p style="font-style: italic; font-weight: bold; color: #dc3545;">
+                                    "Necesito saber quién fue, Hugo. Esto es muy serio. Violación de protocolos. Acceso no autorizado. 
+                                    Quien haya sido esto... podría enfrentar suspensión o peor."
+                                </p>
+                            </div>
+
+                            <div style="text-align: center; padding: 15px; background: #fff3cd; border-radius: 8px;">
+                                <p style="margin-bottom: 0; font-weight: bold;">
+                                    El Capitán te mira fijamente, esperando tu respuesta...
+                                </p>
+                            </div>
+                        </div>
+
+                        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                            <h3 style="color: #e67e22; margin-bottom: 15px; text-align: center;">💭 Pensamiento de Hugo</h3>
+                            <p style="font-style: italic; color: #555; text-align: center;">
+                                "Javier Martínez... es un buen hombre. Tiene familia. No merece esto. Pero si confieso... 
+                                el Capitán sabrá que estoy investigándolo. Y si realmente está involucrado con Los Verdes..."
+                            </p>
+                            <p style="font-style: italic; color: #555; text-align: center; margin-top: 15px;">
+                                "No sé si sospechar del jefe abiertamente... pero hay algo que no cuadra. 
+                                ¿Qué hago?"
+                            </p>
+                        </div>
+                        
+                        <div style="text-align: center;">
+                            <h3 style="color: #dc3545; margin-bottom: 20px;">¿Qué decides?</h3>
+                            ${renderScapegoatChoice()}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderScapegoatChoice() {
+            return currentMissionData.scapegoatChoice.map(choice => {
+                return `
+                    <button class="button" onclick="makeScapegoatDecision('${choice.id}')" 
+                            style="width: 100%; max-width: 500px; margin: 10px auto; display: block; padding: 20px; 
+                                   background: ${choice.id === 'confess' ? 'linear-gradient(135deg, #e74c3c 0%, #c0392b 100%)' : 'linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%)'};">
+                        ${choice.text}<br>
+                        <span style="display: block; font-size: 0.85em; margin-top: 8px; opacity: 0.9;">
+                            ${choice.description}
+                        </span>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function makeScapegoatDecision(choiceId) {
+            stopTimer();
+            const conclusion = currentMissionData.conclusions.find(c => c.id === mission4SelectedConclusion);
+            const choice = currentMissionData.scapegoatChoice.find(ch => ch.id === choiceId);
+            const conclusionCorrect = conclusion.correct;
+
+            const screen = document.getElementById('game-screen');
+
+            if (conclusionCorrect) {
+                // Conclusión correcta - ahora depende de la decisión
+                gameState.mission4Completed = true;
+                saveProgress();
+                
+                const victim = choice.outcome === 'hugo_targeted' ? 'Hugo L.' : 'Detective Javier Martínez';
+                const survivor = choice.outcome === 'hugo_targeted' ? 'Javier Martínez' : 'Hugo L.';
+
+                screen.innerHTML = `
+                    <div class="end-screen">
+                        <div class="result-box" style="border: 4px solid #8e44ad;">
+                            <h1 style="color: #8e44ad; margin-bottom: 20px;">🎯 CONCLUSIÓN CORRECTA</h1>
+                            <div style="font-size: 5em; margin: 20px 0;">🔍</div>
+                            <h2 style="margin-bottom: 15px;">Has descubierto la verdad, Hugo</h2>
+                            
+                            <div class="story-text" style="text-align: left;">
+                                <div style="background: #d4edda; padding: 20px; border-left: 4px solid #28a745; border-radius: 5px; margin-bottom: 20px;">
+                                    <h3 style="color: #28a745; margin-bottom: 10px;">Tu Conclusión:</h3>
+                                    <p style="margin-bottom: 10px;"><strong>${conclusion.text}</strong></p>
+                                    <p>${conclusion.explanation}</p>
+                                </div>
+
+                                <div style="background: ${choice.id === 'confess' ? '#f8d7da' : '#fff3cd'}; padding: 20px; border-left: 4px solid ${choice.id === 'confess' ? '#dc3545' : '#ffc107'}; border-radius: 5px; margin-bottom: 20px;">
+                                    <h3 style="color: ${choice.id === 'confess' ? '#dc3545' : '#ffc107'}; margin-bottom: 10px;">Tu Decisión:</h3>
+                                    <p style="margin-bottom: 15px;"><strong>${choice.text}</strong></p>
+                                    <p style="font-style: italic;">
+                                        ${choice.id === 'confess' ? 
+                                            'Confesaste que fuiste tú. El Capitán Rodríguez no parece sorprendido...' : 
+                                            'Dejaste que sospecharan de Javier Martínez. Fue interrogado y quedó bajo vigilancia...'}
+                                    </p>
+                                </div>
+
+                                <hr style="margin: 25px 0; border: none; border-top: 2px solid #e0e0e0;">
+
+                                <div style="background: #2c3e50; color: white; padding: 25px; border-radius: 10px; margin-bottom: 20px;">
+                                    <h3 style="color: #e74c3c; margin-bottom: 15px; text-align: center;">💀 EL PRECIO DE LA VERDAD</h3>
+                                    <p style="margin-bottom: 15px; font-style: italic;">
+                                        Una semana después, ${victim} aparece muerto en un "accidente" de tráfico. Un coche 
+                                        lo atropelló y se dio a la fuga. Sin testigos. Sin cámaras.
+                                    </p>
+                                    <p style="margin-bottom: 15px; font-style: italic; color: #e74c3c; font-weight: bold;">
+                                        Pero tú sabes que no fue un accidente. Los Verdes eliminaron a quien sabía demasiado.
+                                    </p>
+                                    <p style="font-style: italic;">
+                                        ${choice.id === 'confess' ? 
+                                            'Hugo L. está muerto. Su investigación murió con él. Miguel nunca será vengado.' : 
+                                            'Javier Martínez está muerto. Un hombre inocente pagó por tu investigación. Pero tú sigues vivo... por ahora.'}
+                                    </p>
+                                </div>
+
+                                ${choice.id !== 'confess' ? `
+                                    <div style="background: #fff3cd; padding: 20px; border-left: 4px solid #ffc107; border-radius: 5px; margin-bottom: 20px;">
+                                        <h3 style="color: #e67e22; margin-bottom: 10px;">El Camino Continúa</h3>
+                                        <p style="margin-bottom: 15px;">
+                                            Sigues con vida, pero con un peso en la conciencia. Javier murió por tu investigación. 
+                                            Ahora sabes que alguien poderoso protege a Los Verdes.
+                                        </p>
+                                        <p style="margin-bottom: 15px;">
+                                            No sospechas abiertamente del Capitán Rodríguez, pero las dudas están ahí. Todos esos 
+                                            casos archivados... su firma en cada uno...
+                                        </p>
+                                        <p style="font-style: italic; color: #555; margin-bottom: 15px;">
+                                            Por Miguel. Por Javier. Por todas las víctimas de Los Verdes. Seguirás buscando la verdad, 
+                                            aunque te cueste la vida.
+                                        </p>
+                                        <hr style="margin: 20px 0; border: none; border-top: 2px solid #e0e0e0;">
+                                        <p style="font-style: italic; color: #555;">
+                                            Dos semanas después del funeral de Javier, recibes una llamada anónima: 
+                                            <em>"Investiga la muerte del funcionario García. Él también iba a denunciar a alguien. 
+                                            El caso fue archivado. Rápido."</em>
+                                        </p>
+                                        <p style="font-style: italic; color: #dc3545; font-weight: bold; margin-top: 15px;">
+                                            Clic. La llamada se corta. Tu corazón se acelera. Otro caso archivado... ¿Otra pieza del rompecabezas?
+                                        </p>
+                                    </div>
+                                ` : `
+                                    <p style="font-style: italic; text-align: center; color: #555; margin-top: 20px;">
+                                        <strong>FIN DEL JUEGO</strong><br>
+                                        Hugo L. murió en su búsqueda de la verdad. La corrupción continúa...
+                                    </p>
+                                `}
+
+                                ${choice.id !== 'confess' ? '<p style="text-align: center; font-style: italic; color: #555; margin-top: 20px;"><strong>FIN DE LA MISIÓN 4</strong><br>La sombra de Los Verdes es más oscura de lo que imaginabas...</p>' : ''}
+                            </div>
+
+                            <div style="margin-top: 25px;">
+                                ${choice.id !== 'confess' ? `
+                                    <button class="button" style="background: linear-gradient(135deg, #c0392b 0%, #8e2a1f 100%);" onclick="renderMission5Unlock()">➡️ Investigar el Caso García</button>
+                                ` : ''}
+                                <button class="button ${choice.id !== 'confess' ? 'button-secondary' : ''}" onclick="location.reload()">🏠 Volver al Menú Principal</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                // Conclusión incorrecta - despedido
+                const correctConclusion = currentMissionData.conclusions.find(c => c.correct);
+
+                screen.innerHTML = `
+                    <div class="end-screen">
+                        <div class="result-box result-failure">
+                            <h1 style="color: #dc3545; margin-bottom: 20px;">❌ CONCLUSIÓN INCORRECTA</h1>
+                            <div style="font-size: 5em; margin: 20px 0;">😞</div>
+                            <h2 style="margin-bottom: 15px;">Has fallado, Hugo</h2>
+                            
+                            <div class="story-text" style="text-align: left;">
+                                <div style="background: #f8d7da; padding: 20px; border-left: 4px solid #dc3545; border-radius: 5px; margin-bottom: 20px;">
+                                    <h3 style="color: #dc3545; margin-bottom: 10px;">Tu Conclusión:</h3>
+                                    <p style="margin-bottom: 10px;"><strong>${conclusion.text}</strong></p>
+                                    <p><strong>Error:</strong> ${conclusion.explanation}</p>
+                                </div>
+
+                                <div style="background: #d4edda; padding: 20px; border-left: 4px solid #28a745; border-radius: 5px; margin-bottom: 20px;">
+                                    <h3 style="color: #28a745; margin-bottom: 10px;">La Conclusión Correcta:</h3>
+                                    <p style="margin-bottom: 10px;"><strong>${correctConclusion.text}</strong></p>
+                                    <p>${correctConclusion.explanation}</p>
+                                </div>
+
+                                <hr style="margin: 20px 0; border: none; border-top: 2px solid #e0e0e0;">
+
+                                <p style="margin-bottom: 15px; font-style: italic;">
+                                    El Capitán Rodríguez procesa tu decisión sobre ${choice.id === 'confess' ? 'confesar' : 'culpar a Martínez'}, 
+                                    pero tu conclusión errónea sobre los archivos revela que no entendiste el patrón.
+                                </p>
+
+                                <p style="margin-bottom: 15px; font-style: italic; color: #dc3545; font-weight: bold;">
+                                    "Hugo... violaste protocolos, accediste a archivos sin autorización, y ni siquiera llegaste 
+                                    a la conclusión correcta. No puedo protegerte de esto. Tu placa. Tu arma. Estás despedido."
+                                </p>
+
+                                <p style="font-style: italic; color: #555;">
+                                    Has fallado. Los Verdes siguen operando. Miguel nunca será vengado. Y la corrupción continúa.
+                                </p>
+                            </div>
+
+                            <div style="margin-top: 25px;">
+                                <button class="button" onclick="location.reload()">🔄 Volver al Menú</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function gameOver() {
+            const screen = document.getElementById('game-screen');
+            screen.innerHTML = `
+                <div class="end-screen">
+                    <div class="result-box result-failure">
+                        <h1 style="color: #dc3545; margin-bottom: 20px;">⏰ TIEMPO AGOTADO</h1>
+                        <div style="font-size: 5em; margin: 20px 0;">⌛</div>
+                        <p style="font-size: 1.2em; margin-bottom: 20px;">
+                            El tiempo se ha acabado. El asesino ha logrado escapar y desaparecer sin dejar rastro.
+                        </p>
+                        <div class="story-text" style="text-align: left;">
+                            <p>
+                                <strong style="color: #e67e22;">El culpable era: Marco "El Flaco" Silva (Traficante)</strong>
+                            </p>
+                            <p style="margin-top: 15px;">
+                                Necesitabas actuar más rápido. Las pistas estaban ahí: el arma con huellas, el símbolo verde 
+                                de Los Verdes, y el testigo que lo vio huyendo. Marco actuaba bajo órdenes de la banda criminal.
+                            </p>
+                        </div>
+                        <div style="margin-top: 25px;">
+                            <button class="button" onclick="location.reload()">🔄 Intentar de Nuevo</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Inicializar el juego
+        loadProgress();
+        renderMainMenu();
+    </script>
+</body>
+</html>
