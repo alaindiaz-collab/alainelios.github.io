@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Juego de Clicks</title>
+</head>
+<body style="text-align:center; font-family:Arial; background:#222; color:white;">
+
+<h1>Haz clic y suma puntos</h1>
+
+<button onclick="sumar()" style="padding:20px; font-size:20px;">¡Clic aquí!</button>
+
+<h2>Puntos: <span id="puntos">0</span></h2>
+
+<a href="index.html">
+    <button style="padding:10px;">Volver</button>
+</a>
+
+<script>
+let puntos = 0;
+function sumar(){
+    puntos++;
+    document.getElementById("puntos").innerText = puntos;
+}
+</script>
+
+</body>
+</html>
